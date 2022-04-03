@@ -1,0 +1,35 @@
+{
+  "name": "venode",
+  "version": "0.1.10",
+  "type": "module",
+  "scripts": {
+    "build": "rimraf dist && rollup -c",
+    "dev": "rollup -c --watch src",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm vitest"
+  },
+  "bin": {
+    "venode": "./bin/venode.mjs"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "bin",
+    "*.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aslemammad/venode.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aslemammad/venode/issues"
+  },
+  "homepage": "https://github.com/aslemammad/venode#readme",
+  "devDependencies": {
+    "rollup-plugin-dts": "^4.2.0"
+  },
+  "engines": {}
+}
