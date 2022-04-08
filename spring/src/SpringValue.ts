@@ -1,6 +1,14 @@
+import * as G from './globals'
+import {scheduleProps} from './scheduleProps'
+import { Animated, AnimatedValue, getAnimated, getPayload, setAnimated } from "./animated";
+import { AnimatedString } from "./AnimatedString";
 import { Animation } from "./Animation";
-import { FluidValue } from "./fluids";
-import { FrameValue } from "./FrameValue";
+import { getCancelledResult, getCombinedResult, getFinishedResult, getNoopResult } from "./AnimationResult";
+import { addFluidObserver, callFluidObservers, FluidValue, getFluidObservers, getFluidValue, hasFluidValue, removeFluidObserver } from "./fluids";
+import { FrameValue, isFrameValue } from "./FrameValue";
+import { raf } from "./rafz";
+import { runAsync, RunAsyncProps, RunAsyncState, stopAsync } from "./runAsync";
+import { hasAnimated, isAnimating, isPaused, setActiveBit, setPausedBit } from "./SpringPhase";
 import {
   EventKey,
   Lookup,
@@ -16,7 +24,26 @@ import {
   getDefaultProps,
   is,
   isAsyncTo,
+  PickEventFns,
+  AnimationResolver,
+  VelocityProp,
+  toArray,
+  AsyncResult,
+  flushCalls,
+  each,
+  matchProp,
+  isAnimatedString,
+  AnimationRange,
+  getAnimatedType
 } from "./utils";
+import { mergeConfig } from './AnimationConfig';
+import { frameLoop } from './FrameLoop';
+
+declare const console: any
+
+interface DefaultSpringProps<T>
+  extends Pick<SpringProps<T>, 'pause' | 'cancel' | 'immediate' | 'config'>,
+    PickEventFns<SpringProps<T>> {}
 
 /**
  * Only numbers, strings, and arrays of numbers/strings are supported.

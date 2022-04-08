@@ -27,6 +27,9 @@
 const $get = Symbol.for("FluidValue.get");
 const $observers = Symbol.for("FluidValue.observers");
 
+/** Returns true if `arg` can be observed. */
+export const hasFluidValue = (arg: any): arg is FluidValue => Boolean(arg && arg[$get])
+
 /** An event sent to `FluidObserver` objects. */
 export interface FluidEvent<T = any> {
   type: string;
@@ -116,3 +119,69 @@ export function callFluidObservers(target: any, event: FluidEvent) {
     });
   }
 }
+type GetFluidObservers = {
+  <E extends FluidEvent>(target: FluidValue<any, E>): ReadonlySet<
+    FluidObserver<E>
+  > | null
+  (target: object): ReadonlySet<FluidObserver> | null
+}
+
+
+/** Observe a `fluids`-compatible object. */
+export function addFluidObserver<T, E extends FluidEvent>(
+  target: FluidValue<T, E>,
+  observer: FluidObserver<E>
+): typeof observer
+
+export function addFluidObserver<E extends FluidEvent>(
+  target: object,
+  observer: FluidObserver<E>
+): typeof observer
+
+export function addFluidObserver(target: any, observer: FluidObserver) {
+  if (target[$get]) {
+    let observers: Set<FluidObserver> = target[$observers]
+    if (!observers) {
+      setHidden(target, $observers, (observers = new Set()))
+    }
+    if (!observers.has(observer)) {
+      observers.add(observer)
+      if (target.observerAdded) {
+        target.observerAdded(observers.size, observer)
+      }
+    }
+  }
+  return observer
+}
+
+/** Stop observing a `fluids`-compatible object. */
+export function removeFluidObserver<E extends FluidEvent>(
+  target: FluidValue<any, E>,
+  observer: FluidObserver<E>
+): void
+
+export function removeFluidObserver<E extends FluidEvent>(
+  target: object,
+  observer: FluidObserver<E>
+): void
+
+export function removeFluidObserver(target: any, observer: FluidObserver) {
+  let observers: Set<FluidObserver> = target[$observers]
+  if (observers && observers.has(observer)) {
+    const count = observers.size - 1
+    if (count) {
+      observers.delete(observer)
+    } else {
+      target[$observers] = null
+    }
+    if (target.observerRemoved) {
+      target.observerRemoved(count, observer)
+    }
+  }
+}
+
+
+/** Get the current observer set. Never mutate it directly! */
+export const getFluidObservers: GetFluidObservers = (target: any) =>
+  target[$observers] || null
+

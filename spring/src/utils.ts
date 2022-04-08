@@ -2,18 +2,34 @@ import * as G from "./globals";
 import { FluidValue, FluidProps, getFluidValue } from "./fluids";
 import { Arrify, Constrain } from "./Interpolation";
 import { SpringValue } from "./SpringValue";
-import { Controller } from "./Controller";
+import { Controller, ControllerQueue } from "./Controller";
 import { SpringRef } from "./SpringRef";
+import { AnimatedArray } from "./AnimatedArray";
+import { AnimatedString } from "./AnimatedString";
+import { AnimatedValue, getAnimated } from "./animated";
+import { InferState } from "./runAsync";
+import { Component } from "solid-js";
 
 // types
 export class Any {
   // @ts-ignore
   private _: never;
 }
+
+export type VelocityProp<T = any> = T extends ReadonlyArray<number | string>
+  ? number[]
+  : number;
+
+/** The flush function that handles `start` calls */
+export type ControllerFlushFn<T extends Controller<any> = Controller> = (
+  ctrl: T,
+  queue: ControllerQueue<InferState<T>>
+) => AsyncResult<T>;
+
 /** Override the property types of `A` with `B` and merge any new properties */
 export type Merge<A, B> = Remap<
   { [P in keyof A]: P extends keyof B ? B[P] : A[P] } & Omit<B, keyof A>
->
+>;
 
 /**
  * Move all non-reserved props into the `to` prop.
@@ -21,15 +37,19 @@ export type Merge<A, B> = Remap<
 export type InferTo<T extends object> = Merge<
   { to: ForwardProps<T> },
   Pick<T, keyof T & keyof ReservedProps>
->
+>;
 
 /** Unwrap any `FluidValue` object types */
 export type RawValues<T extends object> = {
-  [P in keyof T]: T[P] extends FluidValue<infer U> ? U : T[P]
-}
+  [P in keyof T]: T[P] extends FluidValue<infer U> ? U : T[P];
+};
+
+export type NonObject<T> =
+  | Extract<T, string | number | ReadonlyArray<string | number>>
+  | Exclude<T, object | void>
 
 /** The promised result of an animation. */
-export type AsyncResult<T extends Readable = any> = Promise<AnimationResult<T>>
+export type AsyncResult<T extends Readable = any> = Promise<AnimationResult<T>>;
 
 type IsType<U> = <T>(arg: T & any) => arg is Narrow<T, U>;
 type Narrow<T, U> = [T] extends [Any] ? U : [T] extends [U] ? Extract<T, U> : U;
@@ -52,6 +72,99 @@ export type FrameFn = () => boolean | void;
 
 type AnyFn = (...args: any[]) => any;
 type VoidFn = (...args: any[]) => undefined | void;
+
+/** Convert a union to an intersection */
+type Intersect<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
+
+/** Intersect a union of objects but merge property types with _unions_ */
+export type ObjectFromUnion<T extends object> = Remap<
+  {
+    [P in keyof Intersect<T>]: T extends infer U
+      ? P extends keyof U
+        ? U[P]
+        : never
+      : never;
+  }
+>;
+
+/** Ensure the given type is an object type */
+export type ObjectType<T> = T extends object ? T : {};
+
+/** The phases of a `useTransition` item */
+export type TransitionKey = "initial" | "enter" | "update" | "leave";
+
+/**
+ * Extract a union of animated values from a set of `useTransition` props.
+ */
+export type TransitionValues<Props extends object> = unknown &
+  ForwardProps<
+    ObjectFromUnion<
+      Constrain<
+        ObjectType<
+          Props[TransitionKey & keyof Props] extends infer T
+            ? T extends ReadonlyArray<infer Element>
+              ? Element
+              : T extends (...args: any[]) => infer Return
+              ? Return extends ReadonlyArray<infer ReturnElement>
+                ? ReturnElement
+                : Return
+              : T
+            : never
+        >,
+        {}
+      >
+    >
+  >;
+
+/**
+ * Pick the values of the `to` prop. Forward props are *not* included.
+ */
+type ToValues<Props extends object, AndForward = true> = unknown &
+  (AndForward extends true ? ForwardProps<Props> : unknown) &
+  (Props extends { to?: any }
+    ? Exclude<Props["to"], Function | ReadonlyArray<any>> extends infer To
+      ? ForwardProps<[To] extends [object] ? To : Partial<Extract<To, object>>>
+      : never
+    : unknown);
+
+/**
+ * Pick the properties of these object props...
+ *
+ *     "to", "from", "initial", "enter", "update", "leave"
+ *
+ * ...as well as any forward props.
+ */
+export type PickAnimated<Props extends object, Fwd = true> = unknown &
+  ([Props] extends [Any]
+    ? Lookup // Preserve "any" instead of resolving to "{}"
+    : [object] extends [Props]
+    ? Lookup
+    : ObjectFromUnion<
+        Props extends { from: infer From } // extract prop from the `from` prop if it exists
+          ? From extends () => any
+            ? ReturnType<From>
+            : ObjectType<From>
+          : TransitionKey & keyof Props extends never
+          ? ToValues<Props, Fwd>
+          : TransitionValues<Props>
+      >);
+
+/** Return a union type of every key whose `T` value is incompatible with its `U` value */
+type InvalidKeys<T, U> = {
+  [P in keyof T & keyof U]: T[P] extends U[P] ? never : P
+}[keyof T & keyof U]
+
+/** Replace the type of each `P` property with `never` */
+type NeverProps<T, P extends keyof T> = Remap<
+  Pick<T, Exclude<keyof T, P>> & { [K in P]: never }
+>
+
+/** Replace the type of each `T` property with `never` (unless compatible with `U`) */
+export type Valid<T, U> = NeverProps<T, InvalidKeys<T, U>>
 
 export interface Timeout {
   time: number;
@@ -541,10 +654,10 @@ export interface ControllerProps<
   State extends Lookup = Lookup,
   Item = undefined
 > extends AnimationProps<State> {
-  ref?: SpringRef<State>
-  from?: GoalValues<State> | Falsy
+  ref?: SpringRef<State>;
+  from?: GoalValues<State> | Falsy;
   // FIXME: Use "ControllerUpdate<T>" once type recursion is good enough.
-  loop?: LoopProp<ControllerUpdate>
+  loop?: LoopProp<ControllerUpdate>;
   /**
    * Called when the # of animating values exceeds 0
    *
@@ -557,8 +670,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >
-      }
+        >;
+      };
   /**
    * Called when the # of animating values hits 0
    *
@@ -571,8 +684,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >
-      }
+        >;
+      };
   /**
    * Called once per frame when animations are active
    *
@@ -585,8 +698,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >
-      }
+        >;
+      };
 
   onPause?:
     | OnPause<SpringValue<State>, Controller<State>, Item>
@@ -595,8 +708,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >
-      }
+        >;
+      };
   onResume?:
     | OnResume<SpringValue<State>, Controller<State>, Item>
     | {
@@ -604,32 +717,32 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >
-      }
+        >;
+      };
   /**
    * Called after an animation is updated by new props.
    * Useful for manipulation
    *
    * Also accepts an object for per-key events
    */
-  onProps?: OnProps<State> | { [P in keyof State]?: OnProps<State[P]> }
+  onProps?: OnProps<State> | { [P in keyof State]?: OnProps<State[P]> };
   /**
    * Called when the promise for this update is resolved.
    */
-  onResolve?: OnResolve<SpringValue<State>, Controller<State>, Item>
+  onResolve?: OnResolve<SpringValue<State>, Controller<State>, Item>;
 }
 
 export type ControllerUpdate<
   State extends Lookup = Lookup,
   Item = undefined
-> = unknown & ToProps<State> & ControllerProps<State, Item>
+> = unknown & ToProps<State> & ControllerProps<State, Item>;
 
 /** A value that any `SpringValue` or `Controller` can animate to. */
 export type SpringTo<T = any> =
   | ([T] extends [IsPlainObject<T>] ? never : T | FluidValue<T>)
   | SpringChain<T>
   | SpringToFn<T>
-  | Falsy
+  | Falsy;
 
 /** A serial queue of spring updates. */
 export interface SpringChain<T = any>
@@ -680,11 +793,21 @@ export interface ReservedEventProps {
   onResolve?: any;
   onDestroyed?: any;
 }
+/** @internal */
+export interface AnimationRange<T> {
+  to: T | FluidValue<T> | undefined;
+  from: T | FluidValue<T> | undefined;
+}
+
+/** @internal */
+export type AnimationResolver<T extends Readable> = (
+  result: AnimationResult<T> | AsyncResult<T>
+) => void;
 
 /** @internal */
 export type PickEventFns<T> = {
-  [P in Extract<keyof T, EventKey>]?: Extract<T[P], Function>
-}
+  [P in Extract<keyof T, EventKey>]?: Extract<T[P], Function>;
+};
 
 /** @internal */
 export type EventKey = Exclude<
@@ -694,9 +817,9 @@ export type EventKey = Exclude<
 
 /** @internal */
 export interface AnimationTarget<T = any> extends Readable<T> {
-  start(props: any): AsyncResult<this>
-  stop: Function
-  item?: unknown
+  start(props: any): AsyncResult<this>;
+  stop: Function;
+  item?: unknown;
 }
 
 /** @internal */
@@ -775,12 +898,11 @@ export type OnRest<
   Item = undefined
 > = EventHandler<TResult, TSource, Item>;
 
-
 export type OnResolve<
   TResult extends Readable,
   TSource,
   Item = undefined
-> = EventHandler<TResult, TSource, Item>
+> = EventHandler<TResult, TSource, Item>;
 
 /**
  * Use the `SpringUpdate` type if you need the `to` prop to exist.
@@ -1049,46 +1171,45 @@ export function isAnimatedString(value: unknown): value is string {
  * Property names that are reserved for animation config
  */
 export interface ReservedProps extends ReservedEventProps {
-  config?: any
-  from?: any
-  to?: any
-  ref?: any
-  loop?: any
-  pause?: any
-  reset?: any
-  cancel?: any
-  reverse?: any
-  immediate?: any
-  default?: any
-  delay?: any
+  config?: any;
+  from?: any;
+  to?: any;
+  ref?: any;
+  loop?: any;
+  pause?: any;
+  reset?: any;
+  cancel?: any;
+  reverse?: any;
+  immediate?: any;
+  default?: any;
+  delay?: any;
 
   // Transition props
-  items?: any
-  trail?: any
-  sort?: any
-  expires?: any
-  initial?: any
-  enter?: any
-  update?: any
-  leave?: any
-  children?: any
+  items?: any;
+  trail?: any;
+  sort?: any;
+  expires?: any;
+  initial?: any;
+  enter?: any;
+  update?: any;
+  leave?: any;
+  children?: any;
 
   // Internal props
-  keys?: any
-  callId?: any
-  parentId?: any
+  keys?: any;
+  callId?: any;
+  parentId?: any;
 }
-
 
 /**
  * Extract the custom props that are treated like `to` values
  */
 export type ForwardProps<T extends object> = RawValues<
   Omit<Constrain<T, {}>, keyof ReservedProps>
->
+>;
 
 const RESERVED_PROPS: {
-  [key: string]: 1 | undefined
+  [key: string]: 1 | undefined;
 } = {
   config: 1,
   from: 1,
@@ -1126,7 +1247,7 @@ const RESERVED_PROPS: {
   keys: 1,
   callId: 1,
   parentId: 1,
-}
+};
 
 /**
  * Extract any properties whose keys are *not* reserved for customizing your
@@ -1136,36 +1257,71 @@ const RESERVED_PROPS: {
 function getForwardProps<Props extends ReservedProps>(
   props: Props
 ): ForwardProps<Props> | undefined {
-  const forward: any = {}
+  const forward: any = {};
 
-  let count = 0
+  let count = 0;
   eachProp(props, (value, prop) => {
     if (!RESERVED_PROPS[prop]) {
-      forward[prop] = value
-      count++
+      forward[prop] = value;
+      count++;
     }
-  })
+  });
 
   if (count) {
-    return forward
+    return forward;
   }
 }
-
 
 /**
  * Clone the given `props` and move all non-reserved props
  * into the `to` prop.
  */
 export function inferTo<T extends object>(props: T): InferTo<T> {
-  const to = getForwardProps(props)
+  const to = getForwardProps(props);
   if (to) {
-    const out: any = { to }
-    eachProp(props, (val, key) => key in to || (out[key] = val))
-    return out
+    const out: any = { to };
+    eachProp(props, (val, key) => key in to || (out[key] = val));
+    return out;
   }
-  return { ...props } as any
+  return { ...props } as any;
 }
 
 export function isAsyncTo(to: any) {
-  return is.fun(to) || (is.arr(to) && is.obj(to[0]))
+  return is.fun(to) || (is.arr(to) && is.obj(to[0]));
+}
+
+export type AnimatedType<T = any> = Function & {
+  create: (
+    from: any,
+    goal?: any
+  ) => T extends ReadonlyArray<number | string>
+    ? AnimatedArray<T>
+    : AnimatedValue<T>;
+};
+
+/** Return the `Animated` node constructor for a given value */
+export function getAnimatedType(value: any): AnimatedType {
+  const parentNode = getAnimated(value);
+  return parentNode
+    ? (parentNode.constructor as any)
+    : is.arr(value)
+    ? AnimatedArray
+    : isAnimatedString(value)
+    ? AnimatedString
+    : AnimatedValue;
+}
+
+/** Detach `ctrl` from `ctrl.ref` and (optionally) the given `ref` */
+export function detachRefs(ctrl: Controller, ref?: SpringRef) {
+  ctrl.ref?.delete(ctrl)
+  ref?.delete(ctrl)
+}
+
+/** Replace `ctrl.ref` with the given `ref` (if defined) */
+export function replaceRef(ctrl: Controller, ref?: SpringRef) {
+  if (ref && ctrl.ref !== ref) {
+    ctrl.ref?.delete(ctrl)
+    ref.add(ctrl)
+    ctrl.ref = ref
+  }
 }
