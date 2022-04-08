@@ -1,6 +1,11 @@
-import { FluidValue } from "./fluids"
-import { FrameValue } from "./FrameValue"
-import { Any } from "./utils"
+import * as G from './globals'
+import { getAnimated, getPayload, setAnimated } from "./animated"
+import { createInterpolator } from "./createInterpolator"
+import { addFluidObserver, callFluidObservers, FluidValue, getFluidValue, hasFluidValue, removeFluidObserver } from "./fluids"
+import { frameLoop } from "./FrameLoop"
+import { FrameValue, isFrameValue } from "./FrameValue"
+import { raf } from "./rafz"
+import { Any, toArray, each, getAnimatedType, isEqual, is } from "./utils"
 
 export type Animatable<T = any> = T extends number
   ? number
@@ -244,4 +249,33 @@ export interface InterpolatorFactory {
   ): (input: number) => Animatable<Out>
 
   <In, Out>(...args: InterpolatorArgs<In, Out>): InterpolatorFn<In, Out>
+}
+
+
+/** Returns true for an idle source. */
+function isIdle(source: any) {
+  return source.idle !== false
+}
+
+/** Return true if all values in the given set are idle or paused. */
+function checkIdle(active: Set<FluidValue>) {
+  // Parents can be active even when paused, so the `.every` check
+  // removes us from the frameloop if all active parents are paused.
+  return !active.size || Array.from(active).every(isIdle)
+}
+
+/** Become idle if not already idle. */
+function becomeIdle(self: Interpolation) {
+  if (!self.idle) {
+    self.idle = true
+
+    each(getPayload(self)!, node => {
+      node.done = true
+    })
+
+    callFluidObservers(self, {
+      type: 'idle',
+      parent: self,
+    })
+  }
 }
