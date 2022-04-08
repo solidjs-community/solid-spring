@@ -1,22 +1,34 @@
-import {createHost} from '@react-spring/animated'
-import type { Component } from "solid-js";
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  createComponent,
+} from "solid-js";
+import { createSpring, animated } from "solid-spring";
+// console.log(createSpring({to: {x: 'h'}}));
 
-console.log(createHost)
-const animated = { h1: "" };
+function ChainExample() {
+  const styles = createSpring({
+    loop: true,
+    to: [
+      { opacity: 1, color: '#ffaaee' },
+      { opacity: 0, color: 'rgb(14,26,19)' },
+    ],
+    from: { opacity: 0, color: 'red' },
+  })
+  console.log(styles()[0])
+
+  return <animated.div style={styles()[0]}>I will fade in and out</animated.div>
+}
 
 const App: Component = () => {
-  // const [flip, set] = useState(false);
-  // const props = useSpring({
-  //   to: { opacity: 1 },
-  //   from: { opacity: 0 },
-  //   reset: true,
-  //   reverse: flip,
-  //   delay: 200,
-  //   onRest: () => set(!flip),
-  // });
 
-  // return <animated.h1 style={props}>hello</animated.h1>;
-  return <h1 ref={(ref) => console.log(ref)} style={{ background: "red" }}>here</h1>;
+  return (
+    <ChainExample />
+  );
 };
+
+// console.log(createComponent(() => <h1>hello</h1>, {}));
 
 export default App;
