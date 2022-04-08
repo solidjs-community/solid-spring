@@ -32,25 +32,27 @@ export type CreateSpringsProps<State extends Lookup = Lookup> = unknown &
   };
 
 export function createSprings<Props extends CreateSpringsProps>(
-  lengthFn: () => number,
+  lengthFn: number | (() => number),
   props: Props[] & CreateSpringsProps<PickAnimated<Props>>[]
-): Accessor<
-  [SpringValues<PickAnimated<Props>>[], SpringRefType<PickAnimated<Props>>]
->;
+): Accessor<SpringValues<PickAnimated<Props>>[]> & {
+  ref: SpringRefType<PickAnimated<Props>>;
+};
 
 export function createSprings<Props extends CreateSpringsProps>(
-  lengthFn: () => number,
+  lengthFn: number | (() => number),
   props: (i: number, ctrl: Controller) => Props
-): Accessor<
-  [SpringValues<PickAnimated<Props>>[], SpringRefType<PickAnimated<Props>>]
->;
+): Accessor<SpringValues<PickAnimated<Props>>[]> & {
+  ref: SpringRefType<PickAnimated<Props>>;
+};
 
 export function createSprings<Props extends CreateSpringsProps>(
-  lengthFn: () => number,
+  lengthFn: any,
   props: any[] | ((i: number, ctrl: Controller) => any)
-): Accessor<
-  [SpringValues<PickAnimated<Props>>[], SpringRefType<PickAnimated<Props>>]
-> {
+): Accessor<SpringValues<PickAnimated<Props>>[]> & {
+  ref: SpringRefType<PickAnimated<Props>>;
+} {
+  const _lengthFn = lengthFn
+  lengthFn = is.fun(lengthFn) ? lengthFn : () => _lengthFn as number;
   const propsFn = is.fun(props) ? props : undefined;
   const ref = SpringRef();
 
@@ -179,7 +181,11 @@ export function createSprings<Props extends CreateSpringsProps>(
     each(state.ctrls, (ctrl) => ctrl.stop(true));
   });
 
-  const value = createMemo(() => [springs.map((x) => ({ ...x })), ref]);
+  const value: Accessor<SpringValues<PickAnimated<Props>>[]> & {
+    ref: SpringRefType<PickAnimated<Props>>;
+  } = createMemo(() => springs.map((x) => ({ ...x }))) as any;
 
-  return value as any;
+  value.ref = ref as any;
+
+  return value;
 }

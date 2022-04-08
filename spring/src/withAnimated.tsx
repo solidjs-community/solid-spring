@@ -3,9 +3,7 @@ import {
   children,
   createComponent,
   createRenderEffect,
-  JSX,
   onCleanup,
-  onMount,
 } from "solid-js";
 import { AnimatedObject } from "./AnimatedObject";
 import { TreeContext } from "./context";
@@ -28,9 +26,7 @@ export const withAnimated = (Component: string, host: HostConfig) => {
       createComponent(Dynamic, { component: Component, ...props })
     );
     const instanceRef: Element = c() as any;
-    onMount(() => console.log("here"));
     const [_props, deps] = getAnimatedState(props, host);
-    console.log(_props, deps);
 
     const callback = () => {
       const didUpdate = instanceRef
@@ -39,7 +35,6 @@ export const withAnimated = (Component: string, host: HostConfig) => {
 
       // Re-render the component when native updates fail.
       if (didUpdate === false) {
-        console.log(didUpdate);
         // forceUpdate()
       }
     };
