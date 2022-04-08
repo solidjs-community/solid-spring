@@ -78,8 +78,6 @@ export const SpringRef = <
   const current: Controller<State>[] = []
 
   const SpringRef: SpringRef<State> = function (props) {
-    deprecateDirectCall()
-
     const results: AsyncResult[] = []
 
     each(current, (ctrl, i) => {
