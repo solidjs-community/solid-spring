@@ -1,5 +1,6 @@
 export * from "./solid/createSprings";
 export * from "./solid/createSpring";
+export { config } from "./utils";
 
 import { AnimatedStyle } from "./AnimatedStyle";
 import { applyAnimatedValues } from "./applyAnimatedValues";
