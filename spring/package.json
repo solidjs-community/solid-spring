@@ -2,6 +2,13 @@
   "name": "solid-spring",
   "version": "0.0.4",
   "type": "module",
+  "description": "Like react-spring, but for SolidJS",
+  "keywords": [
+    "best_ecosystem",
+    "solidhack",
+    "react-spring",
+    "solid"
+  ],
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "dev": "rollup -c --watch src",
