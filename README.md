@@ -2,7 +2,7 @@
 <h1 align="center">solid-spring</h1>
 <h3 align="center">A port of react-spring, for SolidJS</h3>
 
-`solid-spring` is a spring-physics first animation based on react-spring/core for SolidJS.
+`solid-spring` is a spring-physics first animation library for SolidJS based on react-spring/core.
 
 > This an experimental project that was made to be submitted in hack.solidjs.com, feel free to create github ticket
 
