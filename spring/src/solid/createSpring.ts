@@ -31,14 +31,14 @@ export type CreateSpringProps<Props extends object = any> = unknown &
 export function createSpring<Props extends object>(
   props: () =>
     | (Props & Valid<Props, CreateSpringProps<Props>>)
-    | CreateSpringProps
-): Accessor<SpringValues<PickAnimated<Props>>[]> & {
+    | CreateSpringProps<Props>
+): Accessor<SpringValues<PickAnimated<Props>>> & {
   ref: SpringRefType<PickAnimated<Props>>;
 };
 
 export function createSpring<Props extends object>(
-  props: (Props & Valid<Props, CreateSpringProps<Props>>) | CreateSpringProps
-): Accessor<SpringValues<PickAnimated<Props>>[]> & {
+  props: (Props & Valid<Props, CreateSpringProps<Props>>) | CreateSpringProps<Props>
+): Accessor<SpringValues<PickAnimated<Props>>> & {
   ref: SpringRefType<PickAnimated<Props>>;
 };
 

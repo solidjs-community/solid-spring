@@ -1,7 +1,7 @@
 import { createInterpolator } from "./createInterpolator";
 import { FluidValue, getFluidValue } from "./fluids";
 import type { OpaqueAnimation } from "./FrameLoop";
-import { InterpolatorArgs, InterpolatorConfig } from "./Interpolation";
+import { Interpolation, InterpolatorArgs, InterpolatorConfig } from "./Interpolation";
 import { normalizeColor } from "./normalizeColor";
 import { raf } from "./rafz";
 import { cssVariableRegex, isSSR, noop, OneOrMore, Rafz } from "./utils";
@@ -101,10 +101,12 @@ export let createStringInterpolator = (
 // Optional
 //
 
-export let to: <In, Out>(
+export let to = <In, Out>(
   source: OneOrMore<FluidValue>,
   args: InterpolatorArgs<In, Out>
-) => FluidValue<Out>;
+) => {
+  return new Interpolation(source, args)
+}
 
 export let colors = _colors as { [key: string]: number } | null;
 

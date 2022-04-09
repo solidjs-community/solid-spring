@@ -238,7 +238,7 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
 }
 
 export interface InterpolatorFactory {
-  <In, Out>(interpolator: InterpolatorFn<In, Out>): typeof interpolator
+  <In, Out>(interpolator: InterpolatorFn<In, Out>): typeof interpolator;
 
   <Out>(config: InterpolatorConfig<Out>): (input: number) => Animatable<Out>
 
