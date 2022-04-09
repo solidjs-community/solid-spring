@@ -8,7 +8,6 @@ import { AnimatedArray } from "./AnimatedArray";
 import { AnimatedString } from "./AnimatedString";
 import { AnimatedValue, getAnimated } from "./animated";
 import { InferState } from "./runAsync";
-import { Component } from "solid-js";
 
 // types
 export class Any {

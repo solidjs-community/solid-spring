@@ -34,5 +34,8 @@
   "devDependencies": {
     "rollup-plugin-dts": "^4.2.0",
     "solid-js": "^1.3.13"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.3.13"
   }
 }

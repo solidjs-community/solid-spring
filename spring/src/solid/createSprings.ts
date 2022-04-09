@@ -22,6 +22,7 @@ import {
   createEffect,
   createMemo,
   createRenderEffect,
+  createSignal,
   onCleanup,
 } from "solid-js";
 import { declareUpdate } from "../SpringValue";
@@ -110,12 +111,14 @@ export function createSprings<Props extends CreateSpringsProps>(
 
   // Cache old controllers to dispose in the commit phase.
   const prevLength = lengthFn() || 0;
+  const [update, setUpdate] = createSignal(Symbol())
 
   // Update existing controllers when "deps" are changed.
   createRenderEffect(() => {
     const length = lengthFn();
     declareUpdates(0, Math.min(prevLength, length));
   });
+
 
   /** Fill the `updates` array with declarative updates for the given index range. */
   function declareUpdates(startIndex: number, endIndex: number) {
@@ -130,6 +133,7 @@ export function createSprings<Props extends CreateSpringsProps>(
         updates[i] = declareUpdate(update);
       }
     }
+    setUpdate(Symbol())
   }
 
   // New springs are created during render so users can pass them to
@@ -138,6 +142,8 @@ export function createSprings<Props extends CreateSpringsProps>(
   const springs = ctrls.map((ctrl, i) => getSprings(ctrl, updates[i]));
 
   createRenderEffect(() => {
+    update()
+
     layoutId++;
 
     // Replace the cached controllers.

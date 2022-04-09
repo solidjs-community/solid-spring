@@ -1,25 +1,31 @@
 import {
   Component,
+  createSignal,
 } from "solid-js";
-import { createSpring, animated } from "solid-spring";
+import { createSpring, animated, config } from "solid-spring";
 
 function ChainExample() {
-  const styles = createSpring({
-    loop: true,
-    to: [
-      { opacity: 1, color: '#ffaaee' },
-      { opacity: 0, color: 'rgb(14,26,19)' },
-    ],
-    from: { opacity: 0, color: 'red' },
-  })
+  const [flip, set] = createSignal(false);
 
-  return <animated.div style={styles()}>I will fade in and out</animated.div>
+  const styles = createSpring(() => {
+    return {
+      to: { opacity: 1 },
+      from: { opacity: 0 },
+      reset: true,
+      reverse: flip(),
+      delay: 200,
+      config: config.molasses,
+      onRest: () => {
+        set(!flip());
+      },
+    };
+  });
+
+  return <animated.h1 style={styles()}>hello</animated.h1>;
 }
 
 const App: Component = () => {
-  return (
-    <ChainExample />
-  );
+  return <ChainExample />;
 };
 
 export default App;

@@ -13,6 +13,8 @@ const external = [
   ...Object.keys(pkg.peerDependencies || []),
   "worker_threads",
   "esbuild",
+  "solid-js",
+  "solid-js/web",
   "fs/promises",
 ];
 

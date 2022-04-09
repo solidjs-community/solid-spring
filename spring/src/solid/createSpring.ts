@@ -1,4 +1,4 @@
-import { Accessor, createMemo } from "solid-js";
+import { Accessor, createEffect, createMemo } from "solid-js";
 import { SpringRef } from "../SpringRef";
 import type { SpringRef as SpringRefType } from "../SpringRef";
 import {
@@ -43,7 +43,7 @@ export function createSpring<Props extends object>(
 };
 
 export function createSpring(props: any): any {
-  const fn = is.fun(props) ? props : () => props;
+  const fn: Accessor<any> = createMemo(is.fun(props) ? props : () => props);
 
   const springsFn = createSprings(1, fn);
   const springMemo = createMemo(() => {
