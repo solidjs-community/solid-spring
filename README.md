@@ -29,6 +29,14 @@ The API is similar to what we have in react-spring, with small differences to ma
 ```shell
 npm install solid-spring
 ```
+## Examples
+
+[Hello (opacity animation)](https://codesandbox.io/s/hello-qe3eq5?file=/index.tsx)
+<br />
+[Svg (animating svg elements)](https://codesandbox.io/s/svg-omnp4c?file=/index.tsx)
+<br />
+[Numbers (non style use case)](https://codesandbox.io/s/numbers-kbc57h?file=/index.tsx)
+
 ## API
 
 ### `createSpring`
