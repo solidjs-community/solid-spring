@@ -3,6 +3,8 @@
   "version": "0.0.4",
   "type": "module",
   "description": "Like react-spring, but for SolidJS",
+  "info": "solid-spring is a spring-physics first animation library for SolidJS based on react-spring/core",
+  "contributors": [],
   "keywords": [
     "best_ecosystem",
     "solidhack",

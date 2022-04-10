@@ -11,7 +11,8 @@
   },
   "homepage": "https://github.com/aslemammad/solid-spring#readme",
   "description": "Like react-spring, but for SolidJS",
-  "contributors": "",
+  "info": "solid-spring is a spring-physics first animation library for SolidJS based on react-spring/core",
+  "contributors": [],
   "scripts": {},
   "keywords": [
     "best_ecosystem",
