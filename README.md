@@ -23,6 +23,11 @@ const styles = createSpring({
 
 The API is similar to what we have in react-spring, with small differences to make the library compatible with SolidJS
 
+## Preview
+Click on the below gifs for exploring the code of each preview.
+
+<a href="https://codesandbox.io/s/spring-gestures-5xb9p8"><img src="https://i.imgur.com/qLKJod3.gif" width="400"/></a>
+
 
 ## Install
 
