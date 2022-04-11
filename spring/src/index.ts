@@ -9,9 +9,10 @@ import { primitives } from "./primitives";
 
 const host = createHost(primitives, {
   applyAnimatedValues,
-  createAnimatedStyle: style => new AnimatedStyle(style),
+  createAnimatedStyle: (style) => new AnimatedStyle(style),
   getComponentProps: ({ scrollTop, scrollLeft, ...props }: any) => props,
 });
 
 export const animated = host.animated as WithAnimated;
+export { to } from "./globals";
 export { animated as a };
