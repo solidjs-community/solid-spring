@@ -5,6 +5,7 @@ export { config } from "./utils";
 import { AnimatedStyle } from "./AnimatedStyle";
 import { applyAnimatedValues } from "./applyAnimatedValues";
 import { createHost, WithAnimated } from "./createHost";
+import { Interpolation } from "./Interpolation";
 import { primitives } from "./primitives";
 
 const host = createHost(primitives, {
@@ -14,5 +15,6 @@ const host = createHost(primitives, {
 });
 
 export const animated = host.animated as WithAnimated;
-export { to } from "./globals";
+export const to = (source: any, ...args: [any]) =>
+  new Interpolation(source, args);
 export { animated as a };
