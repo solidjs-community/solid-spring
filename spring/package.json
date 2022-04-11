@@ -1,6 +1,6 @@
 {
   "name": "solid-spring",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "description": "Like react-spring, but for SolidJS",
   "info": "solid-spring is a spring-physics first animation library for SolidJS based on react-spring/core",
