@@ -94,6 +94,11 @@ export function createSprings<Props extends CreateSpringsProps>(
 
   const ctrls = [...state.ctrls];
 
+
+  // Cache old controllers to dispose in the commit phase.
+  const prevLength = lengthFn() || 0;
+  const [update, setUpdate] = createSignal(Symbol())
+
   const updates: any[] = [];
   // Create new controllers when "length" increases, and destroy
   // the affected controllers when "length" decreases.
@@ -108,10 +113,6 @@ export function createSprings<Props extends CreateSpringsProps>(
 
     declareUpdates(prevLength, length);
   });
-
-  // Cache old controllers to dispose in the commit phase.
-  const prevLength = lengthFn() || 0;
-  const [update, setUpdate] = createSignal(Symbol())
 
   // Update existing controllers when "deps" are changed.
   createRenderEffect(() => {
