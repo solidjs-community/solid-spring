@@ -1,6 +1,6 @@
-import { AnimatedValue } from "./animated"
-import { FluidValue } from "./fluids"
-import { AnimationConfig, PickEventFns, SpringProps } from "./utils"
+import { type AnimatedValue } from './animated'
+import { type FluidValue } from './fluids'
+import { AnimationConfig, type PickEventFns, type SpringProps } from './utils'
 
 const emptyArray: readonly any[] = []
 

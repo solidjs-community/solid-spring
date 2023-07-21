@@ -1,12 +1,38 @@
-import { AnimationResult, each, eachProp, ControllerUpdate, Lookup, OnChange, OnRest, OnStart, SpringValues, toArray, UnknownProps, OneOrMore, is, flushCalls, AsyncResult, getDefaultProp, flush, Falsy, noop, ControllerFlushFn } from "./utils"
-import { createLoopUpdate, createUpdate, SpringValue, } from './SpringValue'
-import { SpringRef } from "./SpringRef"
-import { FrameValue } from "./FrameValue"
-import { addFluidObserver, FluidObserver } from "./fluids"
-import { runAsync, RunAsyncState, stopAsync } from "./runAsync"
-import { scheduleProps } from "./scheduleProps"
-import { getCancelledResult, getCombinedResult } from "./AnimationResult"
-import { raf } from "./rafz"
+import {
+  type AnimationResult,
+  each,
+  eachProp,
+  type ControllerUpdate,
+  type Lookup,
+  type OnChange,
+  type OnRest,
+  type OnStart,
+  type SpringValues,
+  toArray,
+  type UnknownProps,
+  type OneOrMore,
+  is,
+  flushCalls,
+  type AsyncResult,
+  getDefaultProp,
+  flush,
+  type Falsy,
+  noop,
+  type ControllerFlushFn,
+} from './utils'
+import { createLoopUpdate, createUpdate, SpringValue } from './SpringValue'
+import { type SpringRef } from './SpringRef'
+import { type FrameValue } from './FrameValue'
+import { addFluidObserver, type FluidObserver } from './fluids'
+import {
+  type AsyncTo,
+  runAsync,
+  type RunAsyncState,
+  stopAsync,
+} from './runAsync'
+import { scheduleProps } from './scheduleProps'
+import { getCancelledResult, getCombinedResult } from './AnimationResult'
+import { raf } from './rafz'
 
 /** Events batched by the `Controller` class */
 const BATCHED_EVENTS = ['onStart', 'onChange', 'onRest'] as const
@@ -83,7 +109,7 @@ export class Controller<State extends Lookup = Lookup> {
 
   constructor(
     props?: ControllerUpdate<State> | null,
-    flush?: ControllerFlushFn<any>
+    flush?: ControllerFlushFn<any>,
   ) {
     this._onFrame = this._onFrame.bind(this)
     if (flush) {
@@ -101,7 +127,7 @@ export class Controller<State extends Lookup = Lookup> {
   get idle() {
     return (
       !this._state.asyncTo &&
-      Object.values(this.springs as Lookup<SpringValue>).every(spring => {
+      Object.values(this.springs as Lookup<SpringValue>).every((spring) => {
         return spring.idle && !spring.isDelayed && !spring.isPaused
       })
     )
@@ -182,10 +208,10 @@ export class Controller<State extends Lookup = Lookup> {
     }
     if (keys) {
       const springs = this.springs as Lookup<SpringValue>
-      each(toArray(keys) as string[], key => springs[key].stop(!!arg))
+      each(toArray(keys) as string[], (key) => springs[key].stop(!!arg))
     } else {
       stopAsync(this._state, this._lastAsyncId)
-      this.each(spring => spring.stop(!!arg))
+      this.each((spring) => spring.stop(!!arg))
     }
     return this
   }
@@ -196,7 +222,7 @@ export class Controller<State extends Lookup = Lookup> {
       this.start({ pause: true })
     } else {
       const springs = this.springs as Lookup<SpringValue>
-      each(toArray(keys) as string[], key => springs[key].pause())
+      each(toArray(keys) as string[], (key) => springs[key].pause())
     }
     return this
   }
@@ -207,7 +233,7 @@ export class Controller<State extends Lookup = Lookup> {
       this.start({ pause: false })
     } else {
       const springs = this.springs as Lookup<SpringValue>
-      each(toArray(keys) as string[], key => springs[key].resume())
+      each(toArray(keys) as string[], (key) => springs[key].resume())
     }
     return this
   }
@@ -263,7 +289,9 @@ export class Controller<State extends Lookup = Lookup> {
       this._active.delete(event.parent)
     }
     // The `onFrame` handler runs when a parent is changed or idle.
-    else return
+    else {
+      return
+    }
     raf.onFrame(this._onFrame)
   }
 }
@@ -273,10 +301,10 @@ export class Controller<State extends Lookup = Lookup> {
  */
 export function flushUpdateQueue(
   ctrl: Controller<any>,
-  queue: ControllerQueue
+  queue: ControllerQueue,
 ) {
-  return Promise.all(queue.map(props => flushUpdate(ctrl, props))).then(
-    results => getCombinedResult(ctrl, results)
+  return Promise.all(queue.map((props) => flushUpdate(ctrl, props))).then(
+    (results) => getCombinedResult(ctrl, results),
   )
 }
 
@@ -292,7 +320,7 @@ export function flushUpdateQueue(
 export async function flushUpdate(
   ctrl: Controller<any>,
   props: ControllerQueue[number],
-  isLoop?: boolean
+  isLoop?: boolean,
 ): AsyncResult {
   const { keys, to, from, loop, onRest, onResolve } = props
   const defaults = is.obj(props.default) && props.default
@@ -304,8 +332,12 @@ export async function flushUpdate(
   }
 
   // Treat false like null, which gets ignored.
-  if (to === false) props.to = null
-  if (from === false) props.from = null
+  if (to === false) {
+    props.to = null
+  }
+  if (from === false) {
+    props.from = null
+  }
 
   const asyncTo = is.arr(to) || is.fun(to) ? to : undefined
   if (asyncTo) {
@@ -319,15 +351,19 @@ export async function flushUpdate(
   // However, batching is avoided when the `to` prop is async, because any
   // event props are used as default props instead.
   else {
-    each(BATCHED_EVENTS, key => {
+    each(BATCHED_EVENTS, (key) => {
       const handler: any = props[key]
       if (is.fun(handler)) {
         const queue = ctrl['_events'][key]
         props[key] = (({ finished, cancelled }: AnimationResult) => {
           const result = queue.get(handler)
           if (result) {
-            if (!finished) result.finished = false
-            if (cancelled) result.cancelled = true
+            if (!finished) {
+              result.finished = false
+            }
+            if (cancelled) {
+              result.cancelled = true
+            }
           } else {
             // The "value" is set before the "handler" is called.
             queue.set(handler, {
@@ -358,8 +394,8 @@ export async function flushUpdate(
     props.pause = true
   }
 
-  const promises: AsyncResult[] = (keys || Object.keys(ctrl.springs)).map(key =>
-    ctrl.springs[key]!.start(props as any)
+  const promises: AsyncResult[] = (keys || Object.keys(ctrl.springs)).map(
+    (key) => ctrl.springs[key]!.start(props as any),
   )
 
   const cancel =
@@ -379,11 +415,12 @@ export async function flushUpdate(
               resolve(getCancelledResult(ctrl))
             } else {
               props.onRest = onRest
-              resolve(runAsync(asyncTo!, props, state, ctrl))
+              resolve(runAsync(asyncTo! as AsyncTo<any>, props, state, ctrl))
+              // previously: resolve(runAsync(asyncTo!, props, state, ctrl))
             }
           },
         },
-      })
+      }),
     )
   }
 
@@ -392,7 +429,7 @@ export async function flushUpdate(
   if (state.paused) {
     // Ensure `this` must be resumed before the returned promise
     // is resolved and before starting the next `loop` repetition.
-    await new Promise<void>(resume => {
+    await new Promise<void>((resume) => {
       state.resumeQueue.add(resume)
     })
   }
@@ -420,8 +457,8 @@ export async function flushUpdate(
  * until they're given to `setSprings`.
  */
 export function getSprings<State extends Lookup>(
-  ctrl: Controller<Lookup<any>>,
-  props?: OneOrMore<ControllerUpdate<State>>
+  ctrl: Controller,
+  props?: OneOrMore<ControllerUpdate<State>>,
 ) {
   const springs = { ...ctrl.springs }
   if (props) {
@@ -433,7 +470,7 @@ export function getSprings<State extends Lookup>(
         // Avoid passing array/function to each spring.
         props = { ...props, to: undefined }
       }
-      prepareSprings(springs as any, props, key => {
+      prepareSprings(springs as any, props, (key) => {
         return createSpring(key)
       })
     })
@@ -447,8 +484,8 @@ export function getSprings<State extends Lookup>(
  * whose key is not already in use.
  */
 export function setSprings(
-  ctrl: Controller<Lookup<any>>,
-  springs: SpringValues<UnknownProps>
+  ctrl: Controller,
+  springs: SpringValues<UnknownProps>,
 ) {
   eachProp(springs, (spring, key) => {
     if (!ctrl.springs[key]) {
@@ -476,10 +513,10 @@ function createSpring(key: string, observer?: FluidObserver<FrameValue.Event>) {
 function prepareSprings(
   springs: SpringValues,
   props: ControllerQueue[number],
-  create: (key: string) => SpringValue
+  create: (key: string) => SpringValue,
 ) {
   if (props.keys) {
-    each(props.keys, key => {
+    each(props.keys, (key) => {
       const spring = springs[key] || (springs[key] = create(key))
       spring['_prepareNode'](props)
     })
@@ -493,8 +530,8 @@ function prepareSprings(
  * The queue is expected to contain `createUpdate` results.
  */
 function prepareKeys(ctrl: Controller<any>, queue: ControllerQueue[number][]) {
-  each(queue, props => {
-    prepareSprings(ctrl.springs, props, key => {
+  each(queue, (props) => {
+    prepareSprings(ctrl.springs, props, (key) => {
       return createSpring(key, ctrl)
     })
   })

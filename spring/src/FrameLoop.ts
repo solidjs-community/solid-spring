@@ -77,14 +77,16 @@ function flushStartQueue() {
 }
 
 function startSafely(animation: OpaqueAnimation) {
-  if (!currentFrame.includes(animation)) startUnsafely(animation)
+  if (!currentFrame.includes(animation)) {
+    startUnsafely(animation)
+  }
 }
 
 function startUnsafely(animation: OpaqueAnimation) {
   currentFrame.splice(
-    findIndex(currentFrame, other => other.priority > animation.priority),
+    findIndex(currentFrame, (other) => other.priority > animation.priority),
     0,
-    animation
+    animation,
   )
 }
 

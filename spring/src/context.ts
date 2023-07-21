@@ -1,4 +1,4 @@
-import { FluidValue } from "./fluids"
+import { type FluidValue } from './fluids'
 
 export type TreeContext = {
   /**

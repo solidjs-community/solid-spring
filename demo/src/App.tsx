@@ -1,11 +1,8 @@
-import {
-  Component,
-  createSignal,
-} from "solid-js";
-import { createSpring, animated, config } from "solid-spring";
+import { Component, createSignal } from 'solid-js'
+import { createSpring, animated, config } from 'solid-spring'
 
 function ChainExample() {
-  const [flip, set] = createSignal(false);
+  const [flip, set] = createSignal(false)
 
   const styles = createSpring(() => {
     return {
@@ -16,16 +13,16 @@ function ChainExample() {
       delay: 200,
       config: config.molasses,
       onRest: () => {
-        set(!flip());
+        set(!flip())
       },
-    };
-  });
+    }
+  })
 
-  return <animated.h1 style={styles()}>hello</animated.h1>;
+  return <animated.h1 style={styles()}>hello</animated.h1>
 }
 
 const App: Component = () => {
-  return <ChainExample />;
-};
+  return <ChainExample />
+}
 
-export default App;
+export default App

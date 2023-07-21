@@ -1,4 +1,4 @@
-import { config, EasingFunction, easings, is } from "./utils"
+import { config, type EasingFunction, easings, is } from './utils'
 
 const defaults: any = {
   ...config.default,
@@ -141,13 +141,13 @@ export class AnimationConfig {
 export function mergeConfig(
   config: AnimationConfig,
   newConfig: Partial<AnimationConfig>,
-  defaultConfig?: Partial<AnimationConfig>
+  defaultConfig?: Partial<AnimationConfig>,
 ): typeof config
 
 export function mergeConfig(
   config: any,
   newConfig: object,
-  defaultConfig?: object
+  defaultConfig?: object,
 ) {
   if (defaultConfig) {
     defaultConfig = { ...defaultConfig }
@@ -166,8 +166,12 @@ export function mergeConfig(
 
   let { mass, frequency, damping } = config
   if (!is.und(frequency)) {
-    if (frequency < 0.01) frequency = 0.01
-    if (damping < 0) damping = 0
+    if (frequency < 0.01) {
+      frequency = 0.01
+    }
+    if (damping < 0) {
+      damping = 0
+    }
     config.tension = Math.pow((2 * Math.PI) / frequency, 2) * mass
     config.friction = (4 * Math.PI * damping * mass) / frequency
   }
@@ -179,7 +183,7 @@ export function mergeConfig(
 // This depends on which "config" props take precedence when defined.
 function sanitizeConfig(
   config: Partial<AnimationConfig>,
-  props: Partial<AnimationConfig>
+  props: Partial<AnimationConfig>,
 ) {
   if (!is.und(props.decay)) {
     config.duration = undefined
