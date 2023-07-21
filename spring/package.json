@@ -1,6 +1,6 @@
 {
   "name": "solid-spring",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "type": "module",
   "description": "Like react-spring, but for SolidJS",
   "info": "solid-spring is a spring-physics first animation library for SolidJS based on react-spring/core",
@@ -41,6 +41,7 @@
   },
   "homepage": "https://github.com/aslemammad/solid-spring#readme",
   "devDependencies": {
+    "rimraf": "^5.0.1",
     "rollup-plugin-dts": "^4.2.0",
     "solid-js": "^1.3.13"
   },
