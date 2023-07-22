@@ -164,7 +164,8 @@ export function mergeConfig(
     }
   }
 
-  let { mass, frequency, damping } = config
+  const { mass } = config
+  let { frequency, damping } = config
   if (!is.und(frequency)) {
     if (frequency < 0.01) {
       frequency = 0.01

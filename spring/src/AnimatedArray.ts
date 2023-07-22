@@ -11,9 +11,9 @@ export class AnimatedArray<
   T extends ReadonlyArray<Value> = Value[],
 > extends AnimatedObject {
   protected declare source: Source
-  constructor(source: T) {
-    super(source)
-  }
+  // constructor(source: T) {
+  //   super(source)
+  // }
 
   /** @internal */
   static create<T extends ReadonlyArray<Value>>(source: T) {

@@ -110,7 +110,8 @@ function interpolate(
 }
 
 function findRange(input: number, inputRange: readonly number[]) {
-  for (var i = 1; i < inputRange.length - 1; ++i) {
+  let i = 1
+  for (; i < inputRange.length - 1; ++i) {
     if (inputRange[i] >= input) {
       break
     }

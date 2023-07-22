@@ -179,7 +179,8 @@ export class SpringValue<T = any> extends FrameValue<T> {
     let changed = false
 
     const anim = this.animation
-    let { config, toValues } = anim
+    const { config } = anim
+    let { toValues } = anim
 
     const payload = getPayload(anim.to)
     if (!payload && hasFluidValue(anim.to)) {

@@ -27,7 +27,7 @@ import {
 } from 'solid-js'
 import { declareUpdate } from '../SpringValue'
 
-export type CreateSpringsProps<State extends Lookup = Lookup> = unknown &
+export type CreateSpringsProps<State extends Lookup = Lookup> =
   ControllerUpdate<State> & {
     ref?: SpringRefType<State>
   }
@@ -52,8 +52,7 @@ export function createSprings<Props extends CreateSpringsProps>(
 ): Accessor<SpringValues<PickAnimated<Props>>[]> & {
   ref: SpringRefType<PickAnimated<Props>>
 } {
-  const _lengthFn = lengthFn
-  lengthFn = is.fun(lengthFn) ? lengthFn : () => _lengthFn as number
+  const _lengthFn = is.fun(lengthFn) ? lengthFn : () => lengthFn
   const propsFn = is.fun(props) ? props : undefined
   const ref = SpringRef()
 
@@ -98,7 +97,7 @@ export function createSprings<Props extends CreateSpringsProps>(
   // Create new controllers when "length" increases, and destroy
   // the affected controllers when "length" decreases.
   createEffect(() => {
-    const length = lengthFn()
+    const length = _lengthFn()
     // Clean up any unused controllers
     each(ctrls.slice(length, prevLength), (ctrl) => {
       detachRefs(ctrl, ref)
@@ -110,12 +109,12 @@ export function createSprings<Props extends CreateSpringsProps>(
   })
 
   // Cache old controllers to dispose in the commit phase.
-  const prevLength = lengthFn() || 0
+  const prevLength = _lengthFn() || 0
   const [update, setUpdate] = createSignal(Symbol())
 
   // Update existing controllers when "deps" are changed.
   createRenderEffect(() => {
-    const length = lengthFn()
+    const length = _lengthFn()
     declareUpdates(0, Math.min(prevLength, length))
   })
 

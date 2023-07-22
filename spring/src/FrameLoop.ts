@@ -93,8 +93,7 @@ function startUnsafely(animation: OpaqueAnimation) {
 function advance(dt: number) {
   const nextFrame = prevFrame
 
-  for (let i = 0; i < currentFrame.length; i++) {
-    const animation = currentFrame[i]
+  for (const animation of currentFrame) {
     priority = animation.priority
 
     // Animations may go idle before advancing.

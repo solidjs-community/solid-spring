@@ -88,6 +88,7 @@ export class AnimatedStyle extends AnimatedObject {
         inputs.push([value || ''])
         transforms.push((transform: string) => [transform, transform === ''])
       } else if (domTransforms.test(key)) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete style[key]
         if (is.und(value)) {
           return

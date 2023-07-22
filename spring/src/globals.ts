@@ -232,7 +232,7 @@ export const variableToRgba = (input: string): string => {
 const parseCSSVariable = (current: string) => {
   const match = cssVariableRegex.exec(current)
   if (!match) {
-    return [,]
+    return [undefined, undefined]
   }
 
   const [, token, fallback] = match

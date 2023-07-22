@@ -14,20 +14,20 @@ import { createSprings } from './createSprings'
 /**
  * The props that `useSpring` recognizes.
  */
-export type CreateSpringProps<Props extends object = any> = unknown &
+export type CreateSpringProps<Props extends object = any> =
   PickAnimated<Props> extends infer State
-  ? Remap<
-      ControllerUpdate & {
-        // previously: ControllerUpdate<State> & {
-        /**
-         * Used to access the imperative API.
-         *
-         * When defined, the render animation won't auto-start.
-         */
-        ref?: SpringRef // previously: ref?: SpringRef<State>
-      }
-    >
-  : never
+    ? Remap<
+        ControllerUpdate & {
+          // previously: ControllerUpdate<State> & {
+          /**
+           * Used to access the imperative API.
+           *
+           * When defined, the render animation won't auto-start.
+           */
+          ref?: SpringRef // previously: ref?: SpringRef<State>
+        }
+      >
+    : never
 
 export function createSpring<Props extends object>(
   props: () =>

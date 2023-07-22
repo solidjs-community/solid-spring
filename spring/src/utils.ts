@@ -95,31 +95,32 @@ export type TransitionKey = 'initial' | 'enter' | 'update' | 'leave'
 /**
  * Extract a union of animated values from a set of `useTransition` props.
  */
-export type TransitionValues<Props extends object> = unknown &
-  ForwardProps<
-    ObjectFromUnion<
-      Constrain<
-        ObjectType<
-          Props[TransitionKey & keyof Props] extends infer T
-            ? T extends ReadonlyArray<infer Element>
-              ? Element
-              : T extends (...args: any[]) => infer Return
-              ? Return extends ReadonlyArray<infer ReturnElement>
-                ? ReturnElement
-                : Return
-              : T
-            : never
-        >,
-        {}
-      >
+export type TransitionValues<Props extends object> = ForwardProps<
+  ObjectFromUnion<
+    Constrain<
+      ObjectType<
+        Props[TransitionKey & keyof Props] extends infer T
+          ? T extends ReadonlyArray<infer Element>
+            ? Element
+            : T extends (...args: any[]) => infer Return
+            ? Return extends ReadonlyArray<infer ReturnElement>
+              ? ReturnElement
+              : Return
+            : T
+          : never
+      >,
+      {}
     >
   >
+>
 
 /**
  * Pick the values of the `to` prop. Forward props are *not* included.
  */
-type ToValues<Props extends object, AndForward = true> = unknown &
-  (AndForward extends true ? ForwardProps<Props> : unknown) &
+type ToValues<
+  Props extends object,
+  AndForward = true,
+> = (AndForward extends true ? ForwardProps<Props> : unknown) &
   (Props extends { to?: any }
     ? Exclude<Props['to'], Function | ReadonlyArray<any>> extends infer To
       ? ForwardProps<[To] extends [object] ? To : Partial<Extract<To, object>>>
@@ -133,20 +134,21 @@ type ToValues<Props extends object, AndForward = true> = unknown &
  *
  * ...as well as any forward props.
  */
-export type PickAnimated<Props extends object, Fwd = true> = unknown &
-  ([Props] extends [Any]
-    ? Lookup // Preserve "any" instead of resolving to "{}"
-    : [object] extends [Props]
-    ? Lookup
-    : ObjectFromUnion<
-        Props extends { from: infer From } // extract prop from the `from` prop if it exists
-          ? From extends () => any
-            ? ReturnType<From>
-            : ObjectType<From>
-          : TransitionKey & keyof Props extends never
-          ? ToValues<Props, Fwd>
-          : TransitionValues<Props>
-      >)
+export type PickAnimated<Props extends object, Fwd = true> = [Props] extends [
+  Any,
+]
+  ? Lookup // Preserve "any" instead of resolving to "{}"
+  : [object] extends [Props]
+  ? Lookup
+  : ObjectFromUnion<
+      Props extends { from: infer From } // extract prop from the `from` prop if it exists
+        ? From extends () => any
+          ? ReturnType<From>
+          : ObjectType<From>
+        : TransitionKey & keyof Props extends never
+        ? ToValues<Props, Fwd>
+        : TransitionValues<Props>
+    >
 
 /** Return a union type of every key whose `T` value is incompatible with its `U` value */
 type InvalidKeys<T, U> = {
@@ -733,7 +735,7 @@ export interface ControllerProps<
 export type ControllerUpdate<
   State extends Lookup = Lookup,
   Item = undefined,
-> = unknown & ToProps<State> & ControllerProps<State, Item>
+> = ToProps<State> & ControllerProps<State, Item>
 
 /** A value that any `SpringValue` or `Controller` can animate to. */
 export type SpringTo<T = any> =
@@ -941,8 +943,7 @@ export type NativeRaf = (cb: () => void) => void
 
 export const is = {
   arr: Array.isArray as IsType<readonly any[]>,
-  obj: <T extends any>(a: T & any): a is PlainObject<T> =>
-    !!a && a.constructor.name === 'Object',
+  obj: <T>(a: T): a is PlainObject<T> => !!a && a.constructor.name === 'Object',
   fun: ((a: unknown) => typeof a === 'function') as IsType<Function>,
   str: (a: unknown): a is string => typeof a === 'string',
   num: (a: unknown): a is number => typeof a === 'number',
