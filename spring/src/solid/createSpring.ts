@@ -8,6 +8,7 @@ import {
   type Remap,
   type SpringValues,
   type Valid,
+  type Lookup,
 } from '../utils'
 import { createSprings } from './createSprings'
 
@@ -16,17 +17,18 @@ import { createSprings } from './createSprings'
  */
 export type CreateSpringProps<Props extends object = any> =
   PickAnimated<Props> extends infer State
-    ? Remap<
-        ControllerUpdate & {
-          // previously: ControllerUpdate<State> & {
-          /**
-           * Used to access the imperative API.
-           *
-           * When defined, the render animation won't auto-start.
-           */
-          ref?: SpringRef // previously: ref?: SpringRef<State>
-        }
-      >
+    ? State extends Lookup
+      ? Remap<
+          ControllerUpdate<State> & {
+            /**
+             * Used to access the imperative API.
+             *
+             * When defined, the render animation won't auto-start.
+             */
+            ref?: SpringRef<State>
+          }
+        >
+      : never
     : never
 
 export function createSpring<Props extends object>(
