@@ -1,7 +1,21 @@
 import * as G from './globals'
-import { raf } from "./rafz";
-import { InferProps, InferState, RunAsyncProps, RunAsyncState } from "./runAsync";
-import { AnimationResolver, AnimationTarget, AsyncResult, callProp, is, matchProp, MatchProp, Timeout } from "./utils";
+import { raf } from './rafz'
+import {
+  type InferProps,
+  type InferState,
+  type RunAsyncProps,
+  type RunAsyncState,
+} from './runAsync'
+import {
+  type AnimationResolver,
+  type AnimationTarget,
+  type AsyncResult,
+  callProp,
+  is,
+  matchProp,
+  type MatchProp,
+  type Timeout,
+} from './utils'
 
 // The `scheduleProps` function only handles these defaults.
 type DefaultProps<T> = { cancel?: MatchProp<T>; pause?: MatchProp<T> }
@@ -27,7 +41,7 @@ interface ScheduledProps<T extends AnimationTarget> {
  */
 export function scheduleProps<T extends AnimationTarget>(
   callId: number,
-  { key, props, defaultProps, state, actions }: ScheduledProps<T>
+  { key, props, defaultProps, state, actions }: ScheduledProps<T>,
 ): AsyncResult<T> {
   return new Promise((resolve, reject) => {
     let delay: number

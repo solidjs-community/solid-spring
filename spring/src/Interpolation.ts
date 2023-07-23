@@ -1,11 +1,18 @@
 import * as G from './globals'
-import { getAnimated, getPayload, setAnimated } from "./animated"
-import { createInterpolator } from "./createInterpolator"
-import { addFluidObserver, callFluidObservers, FluidValue, getFluidValue, hasFluidValue, removeFluidObserver } from "./fluids"
-import { frameLoop } from "./FrameLoop"
-import { FrameValue, isFrameValue } from "./FrameValue"
-import { raf } from "./rafz"
-import { Any, toArray, each, getAnimatedType, isEqual, is } from "./utils"
+import { getAnimated, getPayload, setAnimated } from './animated'
+import { createInterpolator } from './createInterpolator'
+import {
+  addFluidObserver,
+  callFluidObservers,
+  type FluidValue,
+  getFluidValue,
+  hasFluidValue,
+  removeFluidObserver,
+} from './fluids'
+import { frameLoop } from './FrameLoop'
+import { FrameValue, isFrameValue } from './FrameValue'
+import { raf } from './rafz'
+import { type Any, toArray, each, getAnimatedType, isEqual, is } from './utils'
 
 export type Animatable<T = any> = T extends number
   ? number
@@ -101,7 +108,7 @@ export type InterpolatorArgs<In = any, Out = any> =
   | [
       readonly number[],
       readonly Constrain<Out, Animatable>[],
-      (ExtrapolateType | undefined)?
+      (ExtrapolateType | undefined)?,
     ]
 
 export type InterpolatorFn<In, Out> = (...inputs: Arrify<In>) => Out
@@ -129,7 +136,7 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
   constructor(
     /** The source of input values */
     readonly source: unknown,
-    args: InterpolatorArgs<In, Out>
+    args: InterpolatorArgs<In, Out>,
   ) {
     super()
     this.calc = createInterpolator(...args)
@@ -166,7 +173,7 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
     if (this.idle && !checkIdle(this._active)) {
       this.idle = false
 
-      each(getPayload(this)!, node => {
+      each(getPayload(this)!, (node) => {
         node.done = false
       })
 
@@ -182,7 +189,7 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
   // Observe our sources only when we're observed.
   protected _attach() {
     let priority = 1
-    each(toArray(this.source), source => {
+    each(toArray(this.source), (source) => {
       if (hasFluidValue(source)) {
         addFluidObserver(source, this)
       }
@@ -199,7 +206,7 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
 
   // Stop observing our sources once we have no observers.
   protected _detach() {
-    each(toArray(this.source), source => {
+    each(toArray(this.source), (source) => {
       if (hasFluidValue(source)) {
         removeFluidObserver(source, this)
       }
@@ -231,26 +238,25 @@ export class Interpolation<In = any, Out = any> extends FrameValue<Out> {
       this.priority = toArray(this.source).reduce(
         (highest: number, parent) =>
           Math.max(highest, (isFrameValue(parent) ? parent.priority : 0) + 1),
-        0
+        0,
       )
     }
   }
 }
 
 export interface InterpolatorFactory {
-  <In, Out>(interpolator: InterpolatorFn<In, Out>): typeof interpolator;
+  <In, Out>(interpolator: InterpolatorFn<In, Out>): typeof interpolator
 
   <Out>(config: InterpolatorConfig<Out>): (input: number) => Animatable<Out>
 
   <Out>(
     range: readonly number[],
     output: readonly Constrain<Out, Animatable>[],
-    extrapolate?: ExtrapolateType
+    extrapolate?: ExtrapolateType,
   ): (input: number) => Animatable<Out>
 
   <In, Out>(...args: InterpolatorArgs<In, Out>): InterpolatorFn<In, Out>
 }
-
 
 /** Returns true for an idle source. */
 function isIdle(source: any) {
@@ -269,7 +275,7 @@ function becomeIdle(self: Interpolation) {
   if (!self.idle) {
     self.idle = true
 
-    each(getPayload(self)!, node => {
+    each(getPayload(self)!, (node) => {
       node.done = true
     })
 

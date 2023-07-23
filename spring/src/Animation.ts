@@ -1,10 +1,11 @@
-import { AnimatedValue } from "./animated"
-import { FluidValue } from "./fluids"
-import { AnimationConfig, PickEventFns, SpringProps } from "./utils"
+import { type AnimatedValue } from './animated'
+import { type FluidValue } from './fluids'
+import { AnimationConfig, type PickEventFns, type SpringProps } from './utils'
 
 const emptyArray: readonly any[] = []
 
 /** An animation being executed by the frameloop */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Animation<T = any> {
   changed = false
   values: readonly AnimatedValue[] = emptyArray

@@ -1,8 +1,12 @@
-import { Animated, AnimatedValue, getPayload, isAnimated } from "./animated"
-import { TreeContext } from "./context"
-import { getFluidValue, hasFluidValue } from "./fluids"
-import { Lookup, eachProp, each } from "./utils"
-
+import {
+  Animated,
+  type AnimatedValue,
+  getPayload,
+  isAnimated,
+} from './animated'
+import { TreeContext } from './context'
+import { getFluidValue, hasFluidValue } from './fluids'
+import { type Lookup, eachProp, each } from './utils'
 
 /** An object containing `Animated` nodes */
 export class AnimatedObject extends Animated {
@@ -33,7 +37,7 @@ export class AnimatedObject extends Animated {
 
   reset() {
     if (this.payload) {
-      each(this.payload, node => node.reset())
+      each(this.payload, (node) => node.reset())
     }
   }
 
@@ -53,7 +57,7 @@ export class AnimatedObject extends Animated {
     }
     const payload = getPayload(source)
     if (payload) {
-      each(payload, node => this.add(node))
+      each(payload, (node) => this.add(node))
     }
   }
 }

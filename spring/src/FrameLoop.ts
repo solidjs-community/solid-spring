@@ -77,22 +77,23 @@ function flushStartQueue() {
 }
 
 function startSafely(animation: OpaqueAnimation) {
-  if (!currentFrame.includes(animation)) startUnsafely(animation)
+  if (!currentFrame.includes(animation)) {
+    startUnsafely(animation)
+  }
 }
 
 function startUnsafely(animation: OpaqueAnimation) {
   currentFrame.splice(
-    findIndex(currentFrame, other => other.priority > animation.priority),
+    findIndex(currentFrame, (other) => other.priority > animation.priority),
     0,
-    animation
+    animation,
   )
 }
 
 function advance(dt: number) {
   const nextFrame = prevFrame
 
-  for (let i = 0; i < currentFrame.length; i++) {
-    const animation = currentFrame[i]
+  for (const animation of currentFrame) {
     priority = animation.priority
 
     // Animations may go idle before advancing.

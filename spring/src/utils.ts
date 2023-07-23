@@ -1,34 +1,34 @@
-import * as G from "./globals";
-import { FluidValue, FluidProps, getFluidValue } from "./fluids";
-import { Arrify, Constrain } from "./Interpolation";
-import { SpringValue } from "./SpringValue";
-import { Controller, ControllerQueue } from "./Controller";
-import { SpringRef } from "./SpringRef";
-import { AnimatedArray } from "./AnimatedArray";
-import { AnimatedString } from "./AnimatedString";
-import { AnimatedValue, getAnimated } from "./animated";
-import { InferState } from "./runAsync";
+import * as G from './globals'
+import { type FluidValue, type FluidProps, getFluidValue } from './fluids'
+import { type Arrify, type Constrain } from './Interpolation'
+import { type SpringValue } from './SpringValue'
+import { type Controller, type ControllerQueue } from './Controller'
+import { type SpringRef } from './SpringRef'
+import { AnimatedArray } from './AnimatedArray'
+import { AnimatedString } from './AnimatedString'
+import { AnimatedValue, getAnimated } from './animated'
+import { type InferState } from './runAsync'
 
 // types
 export class Any {
-  // @ts-ignore
-  private _: never;
+  // @ts-expect-error
+  private _: never
 }
 
 export type VelocityProp<T = any> = T extends ReadonlyArray<number | string>
   ? number[]
-  : number;
+  : number
 
 /** The flush function that handles `start` calls */
 export type ControllerFlushFn<T extends Controller<any> = Controller> = (
   ctrl: T,
-  queue: ControllerQueue<InferState<T>>
-) => AsyncResult<T>;
+  queue: ControllerQueue<InferState<T>>,
+) => AsyncResult<T>
 
 /** Override the property types of `A` with `B` and merge any new properties */
 export type Merge<A, B> = Remap<
   { [P in keyof A]: P extends keyof B ? B[P] : A[P] } & Omit<B, keyof A>
->;
+>
 
 /**
  * Move all non-reserved props into the `to` prop.
@@ -36,99 +36,96 @@ export type Merge<A, B> = Remap<
 export type InferTo<T extends object> = Merge<
   { to: ForwardProps<T> },
   Pick<T, keyof T & keyof ReservedProps>
->;
+>
 
 /** Unwrap any `FluidValue` object types */
 export type RawValues<T extends object> = {
-  [P in keyof T]: T[P] extends FluidValue<infer U> ? U : T[P];
-};
+  [P in keyof T]: T[P] extends FluidValue<infer U> ? U : T[P]
+}
 
 export type NonObject<T> =
   | Extract<T, string | number | ReadonlyArray<string | number>>
   | Exclude<T, object | void>
 
 /** The promised result of an animation. */
-export type AsyncResult<T extends Readable = any> = Promise<AnimationResult<T>>;
+export type AsyncResult<T extends Readable = any> = Promise<AnimationResult<T>>
 
-type IsType<U> = <T>(arg: T & any) => arg is Narrow<T, U>;
-type Narrow<T, U> = [T] extends [Any] ? U : [T] extends [U] ? Extract<T, U> : U;
+type IsType<U> = <T>(arg: T & any) => arg is Narrow<T, U>
+type Narrow<T, U> = [T] extends [Any] ? U : [T] extends [U] ? Extract<T, U> : U
 
-export interface Lookup<T = any> {
-  [key: string]: T;
-}
+export type Lookup<T = any> = Record<string, T>
 
-type PlainObject<T> = Exclude<T & Lookup, Function | readonly any[]>;
+type PlainObject<T> = Exclude<T & Lookup, Function | readonly any[]>
 
 /**
  * This function updates animation state with the delta time.
  */
-export type FrameUpdateFn = (dt: number) => boolean | void;
+export type FrameUpdateFn = (dt: number) => boolean | void
 
 /**
  * Return true to be called again next frame.
  */
-export type FrameFn = () => boolean | void;
+export type FrameFn = () => boolean | void
 
-type AnyFn = (...args: any[]) => any;
-type VoidFn = (...args: any[]) => undefined | void;
+type AnyFn = (...args: any[]) => any
+type VoidFn = (...args: any[]) => undefined | void
 
 /** Convert a union to an intersection */
 type Intersect<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
+  k: infer I,
 ) => void
   ? I
-  : never;
+  : never
 
 /** Intersect a union of objects but merge property types with _unions_ */
-export type ObjectFromUnion<T extends object> = Remap<
-  {
-    [P in keyof Intersect<T>]: T extends infer U
-      ? P extends keyof U
-        ? U[P]
-        : never
-      : never;
-  }
->;
+export type ObjectFromUnion<T extends object> = Remap<{
+  [P in keyof Intersect<T>]: T extends infer U
+    ? P extends keyof U
+      ? U[P]
+      : never
+    : never
+}>
 
 /** Ensure the given type is an object type */
-export type ObjectType<T> = T extends object ? T : {};
+export type ObjectType<T> = T extends object ? T : {}
 
 /** The phases of a `useTransition` item */
-export type TransitionKey = "initial" | "enter" | "update" | "leave";
+export type TransitionKey = 'initial' | 'enter' | 'update' | 'leave'
 
 /**
  * Extract a union of animated values from a set of `useTransition` props.
  */
-export type TransitionValues<Props extends object> = unknown &
-  ForwardProps<
-    ObjectFromUnion<
-      Constrain<
-        ObjectType<
-          Props[TransitionKey & keyof Props] extends infer T
-            ? T extends ReadonlyArray<infer Element>
-              ? Element
-              : T extends (...args: any[]) => infer Return
-              ? Return extends ReadonlyArray<infer ReturnElement>
-                ? ReturnElement
-                : Return
-              : T
-            : never
-        >,
-        {}
-      >
+export type TransitionValues<Props extends object> = ForwardProps<
+  ObjectFromUnion<
+    Constrain<
+      ObjectType<
+        Props[TransitionKey & keyof Props] extends infer T
+          ? T extends ReadonlyArray<infer Element>
+            ? Element
+            : T extends (...args: any[]) => infer Return
+            ? Return extends ReadonlyArray<infer ReturnElement>
+              ? ReturnElement
+              : Return
+            : T
+          : never
+      >,
+      {}
     >
-  >;
+  >
+>
 
 /**
  * Pick the values of the `to` prop. Forward props are *not* included.
  */
-type ToValues<Props extends object, AndForward = true> = unknown &
-  (AndForward extends true ? ForwardProps<Props> : unknown) &
+type ToValues<
+  Props extends object,
+  AndForward = true,
+> = (AndForward extends true ? ForwardProps<Props> : unknown) &
   (Props extends { to?: any }
-    ? Exclude<Props["to"], Function | ReadonlyArray<any>> extends infer To
+    ? Exclude<Props['to'], Function | ReadonlyArray<any>> extends infer To
       ? ForwardProps<[To] extends [object] ? To : Partial<Extract<To, object>>>
       : never
-    : unknown);
+    : unknown)
 
 /**
  * Pick the properties of these object props...
@@ -137,20 +134,21 @@ type ToValues<Props extends object, AndForward = true> = unknown &
  *
  * ...as well as any forward props.
  */
-export type PickAnimated<Props extends object, Fwd = true> = unknown &
-  ([Props] extends [Any]
-    ? Lookup // Preserve "any" instead of resolving to "{}"
-    : [object] extends [Props]
-    ? Lookup
-    : ObjectFromUnion<
-        Props extends { from: infer From } // extract prop from the `from` prop if it exists
-          ? From extends () => any
-            ? ReturnType<From>
-            : ObjectType<From>
-          : TransitionKey & keyof Props extends never
-          ? ToValues<Props, Fwd>
-          : TransitionValues<Props>
-      >);
+export type PickAnimated<Props extends object, Fwd = true> = [Props] extends [
+  Any,
+]
+  ? Lookup // Preserve "any" instead of resolving to "{}"
+  : [object] extends [Props]
+  ? Lookup
+  : ObjectFromUnion<
+      Props extends { from: infer From } // extract prop from the `from` prop if it exists
+        ? From extends () => any
+          ? ReturnType<From>
+          : ObjectType<From>
+        : TransitionKey & keyof Props extends never
+        ? ToValues<Props, Fwd>
+        : TransitionValues<Props>
+    >
 
 /** Return a union type of every key whose `T` value is incompatible with its `U` value */
 type InvalidKeys<T, U> = {
@@ -166,67 +164,67 @@ type NeverProps<T, P extends keyof T> = Remap<
 export type Valid<T, U> = NeverProps<T, InvalidKeys<T, U>>
 
 export interface Timeout {
-  time: number;
-  handler: () => void;
-  cancel: () => void;
+  time: number
+  handler: () => void
+  cancel: () => void
 }
 
 export type Throttled<T extends VoidFn> = T & {
-  handler: T;
-  cancel: () => void;
-};
+  handler: T
+  cancel: () => void
+}
 
 export interface Rafz {
-  (update: FrameUpdateFn): void;
+  (update: FrameUpdateFn): void
 
   /**
    * How should the frameLoop run, when we call .advance or naturally?
    */
-  frameLoop: "always" | "demand";
+  frameLoop: 'always' | 'demand'
 
   /**
    * Prevent a queued `raf(...)` or `raf.write(...)` call.
    */
-  cancel: (fn: AnyFn) => void;
+  cancel: (fn: AnyFn) => void
 
   /**
    * To avoid performance issues, all mutations are batched with this function.
    * If the update loop is dormant, it will be started when you call this.
    */
-  write: (fn: FrameFn) => void;
+  write: (fn: FrameFn) => void
 
   /**
    * Run a function before updates are flushed.
    */
-  onStart: (fn: FrameFn) => void;
+  onStart: (fn: FrameFn) => void
 
   /**
    * Run a function before writes are flushed.
    */
-  onFrame: (fn: FrameFn) => void;
+  onFrame: (fn: FrameFn) => void
 
   /**
    * Run a function after writes are flushed.
    */
-  onFinish: (fn: FrameFn) => void;
+  onFinish: (fn: FrameFn) => void
 
   /**
    * Run a function on the soonest frame after the given time has passed,
    * and before any updates on that particular frame.
    */
-  setTimeout: (handler: () => void, ms: number) => Timeout;
+  setTimeout: (handler: () => void, ms: number) => Timeout
 
   /**
    * Any function scheduled within the given callback is run immediately.
    * This escape hatch should only be used if you know what you're doing.
    */
-  sync: (fn: () => void) => void;
+  sync: (fn: () => void) => void
 
   /**
    * Wrap a function so its execution is limited to once per frame. If called
    * more than once in a single frame, the last call's arguments are used.
    */
-  throttle: <T extends VoidFn>(fn: T) => Throttled<T>;
+  throttle: <T extends VoidFn>(fn: T) => Throttled<T>
 
   /**
    * Override the native `requestAnimationFrame` implementation.
@@ -234,7 +232,7 @@ export interface Rafz {
    * You must call this if your environment never defines
    * `window.requestAnimationFrame` for you.
    */
-  use: <T extends NativeRaf>(impl: T) => T;
+  use: <T extends NativeRaf>(impl: T) => T
 
   /**
    * This is responsible for providing the current time,
@@ -243,26 +241,26 @@ export interface Rafz {
    * It defaults to `performance.now` when it exists,
    * otherwise `Date.now` is used.
    */
-  now: () => number;
+  now: () => number
 
   /**
    * For update batching in React. Does nothing by default.
    */
-  batchedUpdates: (cb: () => void) => void;
+  batchedUpdates: (cb: () => void) => void
 
   /**
    * The error handler used when a queued function throws.
    */
-  catch: (error: Error) => void;
+  catch: (error: Error) => void
 
   /**
    * Manual advancement of the frameLoop, calls our update function
    * only if `.frameLoop === 'demand'`
    */
-  advance: () => void;
+  advance: () => void
 }
 
-export type EasingFunction = (t: number) => number;
+export type EasingFunction = (t: number) => number
 
 export const config = {
   default: { tension: 170, friction: 26 },
@@ -271,62 +269,62 @@ export const config = {
   stiff: { tension: 210, friction: 20 },
   slow: { tension: 280, friction: 60 },
   molasses: { tension: 280, friction: 120 },
-} as const;
+} as const
 
 interface EasingDictionary {
-  linear: (t: number) => number;
-  easeInQuad: (t: number) => number;
-  easeOutQuad: (t: number) => number;
-  easeInOutQuad: (t: number) => number;
-  easeInCubic: (t: number) => number;
-  easeOutCubic: (t: number) => number;
-  easeInOutCubic: (t: number) => number;
-  easeInQuart: (t: number) => number;
-  easeOutQuart: (t: number) => number;
-  easeInOutQuart: (t: number) => number;
-  easeInQuint: (t: number) => number;
-  easeOutQuint: (t: number) => number;
-  easeInOutQuint: (t: number) => number;
-  easeInSine: (t: number) => number;
-  easeOutSine: (t: number) => number;
-  easeInOutSine: (t: number) => number;
-  easeInExpo: (t: number) => number;
-  easeOutExpo: (t: number) => number;
-  easeInOutExpo: (t: number) => number;
-  easeInCirc: (t: number) => number;
-  easeOutCirc: (t: number) => number;
-  easeInOutCirc: (t: number) => number;
-  easeInBack: (t: number) => number;
-  easeOutBack: (t: number) => number;
-  easeInOutBack: (t: number) => number;
-  easeInElastic: (t: number) => number;
-  easeOutElastic: (t: number) => number;
-  easeInOutElastic: (t: number) => number;
-  easeInBounce: (t: number) => number;
-  easeOutBounce: (t: number) => number;
-  easeInOutBounce: (t: number) => number;
+  linear: (t: number) => number
+  easeInQuad: (t: number) => number
+  easeOutQuad: (t: number) => number
+  easeInOutQuad: (t: number) => number
+  easeInCubic: (t: number) => number
+  easeOutCubic: (t: number) => number
+  easeInOutCubic: (t: number) => number
+  easeInQuart: (t: number) => number
+  easeOutQuart: (t: number) => number
+  easeInOutQuart: (t: number) => number
+  easeInQuint: (t: number) => number
+  easeOutQuint: (t: number) => number
+  easeInOutQuint: (t: number) => number
+  easeInSine: (t: number) => number
+  easeOutSine: (t: number) => number
+  easeInOutSine: (t: number) => number
+  easeInExpo: (t: number) => number
+  easeOutExpo: (t: number) => number
+  easeInOutExpo: (t: number) => number
+  easeInCirc: (t: number) => number
+  easeOutCirc: (t: number) => number
+  easeInOutCirc: (t: number) => number
+  easeInBack: (t: number) => number
+  easeOutBack: (t: number) => number
+  easeInOutBack: (t: number) => number
+  easeInElastic: (t: number) => number
+  easeOutElastic: (t: number) => number
+  easeInOutElastic: (t: number) => number
+  easeInBounce: (t: number) => number
+  easeOutBounce: (t: number) => number
+  easeInOutBounce: (t: number) => number
 }
 
-const c1 = 1.70158;
-const c2 = c1 * 1.525;
-const c3 = c1 + 1;
-const c4 = (2 * Math.PI) / 3;
-const c5 = (2 * Math.PI) / 4.5;
+const c1 = 1.70158
+const c2 = c1 * 1.525
+const c3 = c1 + 1
+const c4 = (2 * Math.PI) / 3
+const c5 = (2 * Math.PI) / 4.5
 
 const bounceOut: EasingFunction = (x) => {
-  const n1 = 7.5625;
-  const d1 = 2.75;
+  const n1 = 7.5625
+  const d1 = 2.75
 
   if (x < 1 / d1) {
-    return n1 * x * x;
+    return n1 * x * x
   } else if (x < 2 / d1) {
-    return n1 * (x -= 1.5 / d1) * x + 0.75;
+    return n1 * (x -= 1.5 / d1) * x + 0.75
   } else if (x < 2.5 / d1) {
-    return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    return n1 * (x -= 2.25 / d1) * x + 0.9375
   } else {
-    return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    return n1 * (x -= 2.625 / d1) * x + 0.984375
   }
-};
+}
 
 export const easings: EasingDictionary = {
   linear: (x) => x,
@@ -394,7 +392,7 @@ export const easings: EasingDictionary = {
   easeOutBounce: bounceOut,
   easeInOutBounce: (x) =>
     x < 0.5 ? (1 - bounceOut(1 - 2 * x)) / 2 : (1 + bounceOut(2 * x - 1)) / 2,
-} as const;
+} as const
 
 const defaults: any = {
   ...config.default,
@@ -402,7 +400,7 @@ const defaults: any = {
   damping: 1,
   easing: easings.linear,
   clamp: false,
-};
+}
 
 export class AnimationConfig {
   /**
@@ -410,7 +408,7 @@ export class AnimationConfig {
    *
    * When tension is zero, no animation occurs.
    */
-  tension!: number;
+  tension!: number
 
   /**
    * The damping ratio coefficient, or just the damping ratio when `speed` is defined.
@@ -419,7 +417,7 @@ export class AnimationConfig {
    *
    * Higher friction means the spring will slow down faster.
    */
-  friction!: number;
+  friction!: number
 
   /**
    * The natural frequency (in seconds), which dictates the number of bounces
@@ -428,7 +426,7 @@ export class AnimationConfig {
    * When defined, `tension` is derived from this, and `friction` is derived
    * from `tension` and `damping`.
    */
-  frequency?: number;
+  frequency?: number
 
   /**
    * The damping ratio, which dictates how the spring slows down.
@@ -440,26 +438,26 @@ export class AnimationConfig {
    *
    * Defaults to 1
    */
-  damping!: number;
+  damping!: number
 
   /**
    * Higher mass means more friction is required to slow down.
    *
    * Defaults to 1, which works fine most of the time.
    */
-  mass!: number;
+  mass!: number
 
   /**
    * The initial velocity of one or more values.
    */
-  velocity: number | number[] = 0;
+  velocity: number | number[] = 0
 
   /**
    * The smallest velocity before the animation is considered "not moving".
    *
    * When undefined, `precision` is used instead.
    */
-  restVelocity?: number;
+  restVelocity?: number
 
   /**
    * The smallest distance from a value before that distance is essentially zero.
@@ -468,7 +466,7 @@ export class AnimationConfig {
    * this distance from its final value, and its velocity must be lower than this
    * value too (unless `restVelocity` is defined).
    */
-  precision?: number;
+  precision?: number
 
   /**
    * For `duration` animations only. Note: The `duration` is not affected
@@ -482,24 +480,24 @@ export class AnimationConfig {
    *
    * Any number `>= 0` and `<= 1` makes sense here.
    */
-  progress?: number;
+  progress?: number
 
   /**
    * Animation length in number of milliseconds.
    */
-  duration?: number;
+  duration?: number
 
   /**
    * The animation curve. Only used when `duration` is defined.
    *
    * Defaults to quadratic ease-in-out.
    */
-  easing!: EasingFunction;
+  easing!: EasingFunction
 
   /**
    * Avoid overshooting by ending abruptly at the goal value.
    */
-  clamp!: boolean;
+  clamp!: boolean
 
   /**
    * When above zero, the spring will bounce instead of overshooting when
@@ -508,7 +506,7 @@ export class AnimationConfig {
    * setting `bounce` to `0.5` chops the velocity in half on each bounce,
    * in addition to any friction.
    */
-  bounce?: number;
+  bounce?: number
 
   /**
    * "Decay animations" decelerate without an explicit goal value.
@@ -520,22 +518,22 @@ export class AnimationConfig {
    * animation slow down faster. And setting to `1` would make an unending
    * animation.
    */
-  decay?: boolean | number;
+  decay?: boolean | number
 
   /**
    * While animating, round to the nearest multiple of this number.
    * The `from` and `to` values are never rounded, as well as any value
    * passed to the `set` method of an animated value.
    */
-  round?: number;
+  round?: number
 
   constructor() {
-    Object.assign(this, defaults);
+    Object.assign(this, defaults)
   }
 }
 
 /** The object type of the `config` prop. */
-export type SpringConfig = Partial<AnimationConfig>;
+export type SpringConfig = Partial<AnimationConfig>
 
 /**
  * For testing whether a type is an object but not an array.
@@ -548,68 +546,68 @@ export type IsPlainObject<T> = T extends ReadonlyArray<any>
   ? Any
   : T extends object
   ? object
-  : Any;
+  : Any
 
 export type StringKeys<T> = T extends IsPlainObject<T>
   ? string & keyof T
-  : string;
+  : string
 
-export type OneOrMore<T> = T | readonly T[];
+export type OneOrMore<T> = T | readonly T[]
 
 /** For props that can be set on a per-key basis. */
 export type MatchProp<T> =
   | boolean
   | OneOrMore<StringKeys<T>>
-  | ((key: StringKeys<T>) => boolean);
+  | ((key: StringKeys<T>) => boolean)
 
 export interface AnimationProps<T = any> {
   /**
    * Configure the spring behavior for each key.
    */
-  config?: SpringConfig | ((key: StringKeys<T>) => SpringConfig);
+  config?: SpringConfig | ((key: StringKeys<T>) => SpringConfig)
   /**
    * Milliseconds to wait before applying the other props.
    */
-  delay?: number | ((key: StringKeys<T>) => number);
+  delay?: number | ((key: StringKeys<T>) => number)
   /**
    * When true, props jump to their goal values instead of animating.
    */
-  immediate?: MatchProp<T>;
+  immediate?: MatchProp<T>
   /**
    * Cancel all animations by using `true`, or some animations by using a key
    * or an array of keys.
    */
-  cancel?: MatchProp<T>;
+  cancel?: MatchProp<T>
   /**
    * Pause all animations by using `true`, or some animations by using a key
    * or an array of keys.
    */
-  pause?: MatchProp<T>;
+  pause?: MatchProp<T>
   /**
    * Start the next animations at their values in the `from` prop.
    */
-  reset?: MatchProp<T>;
+  reset?: MatchProp<T>
   /**
    * Swap the `to` and `from` props.
    */
-  reverse?: boolean;
+  reverse?: boolean
   /**
    * Override the default props with this update.
    */
-  default?: boolean | SpringProps<T>;
+  default?: boolean | SpringProps<T>
 }
 
 /** Intersected with other object types to allow for unknown properties */
 export interface UnknownProps extends Lookup<unknown> {}
 
-export type GoalValue<T> = T | FluidValue<T> | UnknownProps | null | undefined;
+export type GoalValue<T> = T | FluidValue<T> | UnknownProps | null | undefined
 
 /** A set of values for a `Controller` to animate from/to. */
 export type GoalValues<T extends Lookup> = FluidProps<T> extends infer Props
   ? { [P in keyof Props]?: Props[P] | null }
-  : never;
+  : never
 
-export type Falsy = false | null | undefined;
+export type Falsy = false | null | undefined
 
 /**
  * A value or set of values that can be animated from/to.
@@ -619,22 +617,24 @@ export type Falsy = false | null | undefined;
  */
 export type GoalProp<T> = [T] extends [IsPlainObject<T>]
   ? GoalValues<T> | Falsy
-  : GoalValue<T>;
+  : GoalValue<T>
 
 /** Try to simplify `&` out of an object type */
 export type Remap<T> = {} & {
-  [P in keyof T]: T[P];
-};
+  [P in keyof T]: T[P]
+}
 /**
  * Where `to` is inferred from non-reserved props
  *
  * The `T` parameter can be a set of animated values (as an object type)
  * or a primitive type for a single animated value.
  */
-export type InlineToProps<T = any> = Remap<GoalValues<T> & { to?: undefined }>;
+export type InlineToProps<T extends Lookup = any> = Remap<
+  GoalValues<T> & { to?: undefined }
+>
 
-type StartFn<T> = InferTarget<T> extends { start: infer T } ? T : never;
-type StopFn<T> = InferTarget<T> extends { stop: infer T } ? T : never;
+type StartFn<T> = InferTarget<T> extends { start: infer T } ? T : never
+type StopFn<T> = InferTarget<T> extends { stop: infer T } ? T : never
 /**
  * An async function that can update or stop the animations of a spring.
  * Typically defined as the `to` prop.
@@ -642,21 +642,22 @@ type StopFn<T> = InferTarget<T> extends { stop: infer T } ? T : never;
  * The `T` parameter can be a set of animated values (as an object type)
  * or a primitive type for a single animated value.
  */
-export interface SpringToFn<T = any> {
-  (start: StartFn<T>, stop: StopFn<T>): Promise<any> | void;
-}
+export type SpringToFn<T = any> = (
+  start: StartFn<T>,
+  stop: StopFn<T>,
+) => Promise<any> | void
 
 /**
  * Props for `Controller` methods and constructor.
  */
 export interface ControllerProps<
   State extends Lookup = Lookup,
-  Item = undefined
+  Item = undefined,
 > extends AnimationProps<State> {
-  ref?: SpringRef<State>;
-  from?: GoalValues<State> | Falsy;
+  ref?: SpringRef<State>
+  from?: GoalValues<State> | Falsy
   // FIXME: Use "ControllerUpdate<T>" once type recursion is good enough.
-  loop?: LoopProp<ControllerUpdate>;
+  loop?: LoopProp<ControllerUpdate>
   /**
    * Called when the # of animating values exceeds 0
    *
@@ -669,8 +670,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >;
-      };
+        >
+      }
   /**
    * Called when the # of animating values hits 0
    *
@@ -683,8 +684,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >;
-      };
+        >
+      }
   /**
    * Called once per frame when animations are active
    *
@@ -697,8 +698,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >;
-      };
+        >
+      }
 
   onPause?:
     | OnPause<SpringValue<State>, Controller<State>, Item>
@@ -707,8 +708,8 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >;
-      };
+        >
+      }
   onResume?:
     | OnResume<SpringValue<State>, Controller<State>, Item>
     | {
@@ -716,32 +717,32 @@ export interface ControllerProps<
           SpringValue<State[P]>,
           Controller<State>,
           Item
-        >;
-      };
+        >
+      }
   /**
    * Called after an animation is updated by new props.
    * Useful for manipulation
    *
    * Also accepts an object for per-key events
    */
-  onProps?: OnProps<State> | { [P in keyof State]?: OnProps<State[P]> };
+  onProps?: OnProps<State> | { [P in keyof State]?: OnProps<State[P]> }
   /**
    * Called when the promise for this update is resolved.
    */
-  onResolve?: OnResolve<SpringValue<State>, Controller<State>, Item>;
+  onResolve?: OnResolve<SpringValue<State>, Controller<State>, Item>
 }
 
 export type ControllerUpdate<
   State extends Lookup = Lookup,
-  Item = undefined
-> = unknown & ToProps<State> & ControllerProps<State, Item>;
+  Item = undefined,
+> = ToProps<State> & ControllerProps<State, Item>
 
 /** A value that any `SpringValue` or `Controller` can animate to. */
 export type SpringTo<T = any> =
   | ([T] extends [IsPlainObject<T>] ? never : T | FluidValue<T>)
   | SpringChain<T>
   | SpringToFn<T>
-  | Falsy;
+  | Falsy
 
 /** A serial queue of spring updates. */
 export interface SpringChain<T = any>
@@ -761,64 +762,64 @@ export interface SpringChain<T = any>
  */
 export type ToProps<T = any> =
   | { to?: GoalProp<T> | SpringToFn<T> | SpringChain<T> }
-  | ([T] extends [IsPlainObject<T>] ? InlineToProps<T> : never);
+  | ([T] extends [IsPlainObject<T>] ? InlineToProps<T> : never)
 
-export type SpringUpdate<T = any> = ToProps<T> & SpringProps<T>;
+export type SpringUpdate<T = any> = ToProps<T> & SpringProps<T>
 
-export type LoopProp<T extends object> = boolean | T | (() => boolean | T);
+export type LoopProp<T extends object> = boolean | T | (() => boolean | T)
 
 /** Event props can be customized per-key. */
-export type EventProp<T> = T | Lookup<T | undefined>;
+export type EventProp<T> = T | Lookup<T | undefined>
 
 // Wrap a type with `SpringValue`
 type SpringWrap<T> = [
   Exclude<T, FluidValue>,
-  Extract<T, readonly any[]> // Arrays are animated.
+  Extract<T, readonly any[]>, // Arrays are animated.
 ] extends [object | void, never]
   ? never // Object literals cannot be animated.
-  : SpringValue<Exclude<T, FluidValue | void>> | Extract<T, void>;
+  : SpringValue<Exclude<T, FluidValue | void>> | Extract<T, void>
 
 export type SpringValues<T extends Lookup = any> = [T] extends [Any]
   ? Lookup<SpringValue<unknown> | undefined> // Special case: "any"
-  : { [P in keyof T]: SpringWrap<T[P]> };
+  : { [P in keyof T]: SpringWrap<T[P]> }
 
 export interface ReservedEventProps {
-  onProps?: any;
-  onStart?: any;
-  onChange?: any;
-  onPause?: any;
-  onResume?: any;
-  onRest?: any;
-  onResolve?: any;
-  onDestroyed?: any;
+  onProps?: any
+  onStart?: any
+  onChange?: any
+  onPause?: any
+  onResume?: any
+  onRest?: any
+  onResolve?: any
+  onDestroyed?: any
 }
 /** @internal */
 export interface AnimationRange<T> {
-  to: T | FluidValue<T> | undefined;
-  from: T | FluidValue<T> | undefined;
+  to: T | FluidValue<T> | undefined
+  from: T | FluidValue<T> | undefined
 }
 
 /** @internal */
 export type AnimationResolver<T extends Readable> = (
-  result: AnimationResult<T> | AsyncResult<T>
-) => void;
+  result: AnimationResult<T> | AsyncResult<T>,
+) => void
 
 /** @internal */
 export type PickEventFns<T> = {
-  [P in Extract<keyof T, EventKey>]?: Extract<T[P], Function>;
-};
+  [P in Extract<keyof T, EventKey>]?: Extract<T[P], Function>
+}
 
 /** @internal */
 export type EventKey = Exclude<
   keyof ReservedEventProps,
-  "onResolve" | "onDestroyed"
->;
+  'onResolve' | 'onDestroyed'
+>
 
 /** @internal */
 export interface AnimationTarget<T = any> extends Readable<T> {
-  start(props: any): AsyncResult<this>;
-  stop: Function;
-  item?: unknown;
+  start(props: any): AsyncResult<this>
+  stop: Function
+  item?: unknown
 }
 
 /** @internal */
@@ -826,11 +827,11 @@ export type InferTarget<T> = T extends object
   ? T extends ReadonlyArray<number | string>
     ? SpringValue<T>
     : Controller<T>
-  : SpringValue<T>;
+  : SpringValue<T>
 
 /** @internal */
 export interface Readable<T = any> {
-  get(): T;
+  get(): T
 }
 
 /**
@@ -839,27 +840,27 @@ export interface Readable<T = any> {
  */
 export type OnProps<T = unknown> = (
   props: Readonly<SpringProps<T>>,
-  spring: SpringValue<T>
-) => void;
+  spring: SpringValue<T>,
+) => void
 
 /** The object given to the `onRest` prop and `start` promise. */
 export interface AnimationResult<T extends Readable = any> {
-  value: T extends Readable<infer U> ? U : never;
+  value: T extends Readable<infer U> ? U : never
   /** When true, no animation ever started. */
-  noop?: boolean;
+  noop?: boolean
   /** When true, the animation was neither cancelled nor stopped prematurely. */
-  finished?: boolean;
+  finished?: boolean
   /** When true, the animation was cancelled before it could finish. */
-  cancelled?: boolean;
+  cancelled?: boolean
 }
 
 type EventHandler<
   TResult extends Readable = any,
   TSource = unknown,
-  Item = undefined
+  Item = undefined,
 > = Item extends undefined
   ? (result: AnimationResult<TResult>, ctrl: TSource, item?: Item) => void
-  : (result: AnimationResult<TResult>, ctrl: TSource, item: Item) => void;
+  : (result: AnimationResult<TResult>, ctrl: TSource, item: Item) => void
 
 /**
  * Called before the first frame of every animation.
@@ -868,40 +869,40 @@ type EventHandler<
 export type OnStart<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 /** Called when a `SpringValue` changes */
 export type OnChange<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 export type OnPause<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 export type OnResume<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 /** Called once the animation comes to a halt */
 export type OnRest<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 export type OnResolve<
   TResult extends Readable,
   TSource,
-  Item = undefined
-> = EventHandler<TResult, TSource, Item>;
+  Item = undefined,
+> = EventHandler<TResult, TSource, Item>
 
 /**
  * Use the `SpringUpdate` type if you need the `to` prop to exist.
@@ -912,75 +913,78 @@ export type OnResolve<
  * or a primitive type for a single animated value.
  */
 export interface SpringProps<T = any> extends AnimationProps<T> {
-  from?: GoalValue<T>;
+  from?: GoalValue<T>
   // FIXME: Use "SpringUpdate<T>" once type recursion is good enough.
-  loop?: LoopProp<SpringUpdate>;
+  loop?: LoopProp<SpringUpdate>
   /**
    * Called after an animation is updated by new props,
    * even if the animation remains idle.
    */
-  onProps?: EventProp<OnProps<T>>;
+  onProps?: EventProp<OnProps<T>>
   /**
    * Called when an animation moves for the first time.
    */
-  onStart?: EventProp<OnStart<SpringValue<T>, SpringValue<T>>>;
+  onStart?: EventProp<OnStart<SpringValue<T>, SpringValue<T>>>
   /**
    * Called when a spring has its value changed.
    */
-  onChange?: EventProp<OnChange<SpringValue<T>, SpringValue<T>>>;
-  onPause?: EventProp<OnPause<SpringValue<T>, SpringValue<T>>>;
-  onResume?: EventProp<OnResume<SpringValue<T>, SpringValue<T>>>;
+  onChange?: EventProp<OnChange<SpringValue<T>, SpringValue<T>>>
+  onPause?: EventProp<OnPause<SpringValue<T>, SpringValue<T>>>
+  onResume?: EventProp<OnResume<SpringValue<T>, SpringValue<T>>>
   /**
    * Called when all animations come to a stand-still.
    */
-  onRest?: EventProp<OnRest<SpringValue<T>, SpringValue<T>>>;
+  onRest?: EventProp<OnRest<SpringValue<T>, SpringValue<T>>>
 }
 
-export type NativeRaf = (cb: () => void) => void;
+export type NativeRaf = (cb: () => void) => void
 
 // funcs
 
 export const is = {
   arr: Array.isArray as IsType<readonly any[]>,
-  obj: <T extends any>(a: T & any): a is PlainObject<T> =>
-    !!a && a.constructor.name === "Object",
-  fun: ((a: unknown) => typeof a === "function") as IsType<Function>,
-  str: (a: unknown): a is string => typeof a === "string",
-  num: (a: unknown): a is number => typeof a === "number",
+  obj: <T>(a: T): a is PlainObject<T> => !!a && a.constructor.name === 'Object',
+  fun: ((a: unknown) => typeof a === 'function') as IsType<Function>,
+  str: (a: unknown): a is string => typeof a === 'string',
+  num: (a: unknown): a is number => typeof a === 'number',
   und: (a: unknown): a is undefined => a === undefined,
-};
+}
 
 export const defineHidden = (obj: any, key: any, value: any) =>
   Object.defineProperty(obj, key, {
     value,
     writable: true,
     configurable: true,
-  });
+  })
 
 export function noop() {}
 
 /** Compare animatable values */
 export function isEqual(a: any, b: any) {
   if (is.arr(a)) {
-    if (!is.arr(b) || a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
+    if (!is.arr(b) || a.length !== b.length) {
+      return false
     }
-    return true;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) {
+        return false
+      }
+    }
+    return true
   }
-  return a === b;
+  return a === b
 }
 
-type EachFn<Value, Key, This> = (this: This, value: Value, key: Key) => void;
+type EachFn<Value, Key, This> = (this: This, value: Value, key: Key) => void
 type Eachable<Value = any, Key = any, This = any> = {
-  forEach(cb: EachFn<Value, Key, This>, ctx?: This): void;
-};
+  forEach(cb: EachFn<Value, Key, This>, ctx?: This): void
+}
 
 /** Minifiable `.forEach` call */
 export const each = <Value, Key, This>(
   obj: Eachable<Value, Key, This>,
-  fn: EachFn<Value, Key, This>
-) => obj.forEach(fn);
+  fn: EachFn<Value, Key, This>,
+) => obj.forEach(fn)
 
 /** Iterate the properties of an object */
 export function eachProp<T extends object, This>(
@@ -988,37 +992,37 @@ export function eachProp<T extends object, This>(
   fn: (
     this: This,
     value: T extends any[] ? T[number] : T[keyof T],
-    key: string
+    key: string,
   ) => void,
-  ctx?: This
+  ctx?: This,
 ) {
   if (is.arr(obj)) {
     for (let i = 0; i < obj.length; i++) {
-      fn.call(ctx as any, obj[i] as any, `${i}`);
+      fn.call(ctx as any, obj[i], `${i}`)
     }
-    return;
+    return
   }
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
-      fn.call(ctx as any, obj[key] as any, key);
+      fn.call(ctx as any, obj[key] as any, key)
     }
   }
 }
 
 export const toArray = <T>(a: T): Arrify<Exclude<T, void>> =>
-  is.und(a) ? [] : is.arr(a) ? (a as any) : [a];
+  is.und(a) ? [] : is.arr(a) ? (a as any) : [a]
 
 /** Copy the `queue`, then iterate it after the `queue` is cleared */
 export function flush<P, T>(
   queue: Map<P, T>,
-  iterator: (entry: [P, T]) => void
-): void;
-export function flush<T>(queue: Set<T>, iterator: (value: T) => void): void;
+  iterator: (entry: [P, T]) => void,
+): void
+export function flush<T>(queue: Set<T>, iterator: (value: T) => void): void
 export function flush(queue: any, iterator: any) {
   if (queue.size) {
-    const items = Array.from(queue);
-    queue.clear();
-    each(items, iterator);
+    const items = Array.from(queue)
+    queue.clear()
+    each(items, iterator)
   }
 }
 
@@ -1026,63 +1030,64 @@ export function flush(queue: any, iterator: any) {
 export const flushCalls = <T extends AnyFn>(
   queue: Set<T>,
   ...args: Parameters<T>
-) => flush(queue, (fn) => fn(...args));
+) => flush(queue, (fn) => fn(...args))
 
 // For server-side rendering: https://github.com/react-spring/zustand/pull/34
 // Deno support: https://github.com/pmndrs/zustand/issues/347
 
 export const isSSR = () =>
-  typeof window === "undefined" ||
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+  typeof window === 'undefined' ||
   !window.navigator ||
-  /ServerSideRendering|^Deno\//.test(window.navigator.userAgent);
+  /ServerSideRendering|^Deno\//.test(window.navigator.userAgent)
 
 export type AnyFnType<In extends ReadonlyArray<any> = any[], Out = any> = (
   ...args: In
-) => Out;
+) => Out
 
 export function callProp<T>(
   value: T,
   ...args: T extends AnyFn ? Parameters<T> : unknown[]
 ): T extends AnyFnType<any, infer U> ? U : T {
-  return is.fun(value) ? value(...args) : value;
+  return is.fun(value) ? value(...args) : value
 }
 
 /** Try to coerce the given value into a boolean using the given key */
 export const matchProp = (
   value: boolean | OneOrMore<string> | ((key: any) => boolean) | undefined,
-  key: string | undefined
+  key: string | undefined,
 ) =>
   value === true ||
   !!(
     key &&
     value &&
     (is.fun(value) ? value(key) : toArray(value).includes(key))
-  );
+  )
 
 export const resolveProp = <T>(
   prop: T | Lookup<T> | undefined,
-  key: string | undefined
-) => (is.obj(prop) ? key && (prop as any)[key] : prop);
+  key: string | undefined,
+) => (is.obj(prop) ? key && (prop as any)[key] : prop)
 
 export const concatFn = <T extends AnyFn>(first: T | undefined, last: T) =>
-  first ? (...args: Parameters<T>) => (first(...args), last(...args)) : last;
+  first ? (...args: Parameters<T>) => (first(...args), last(...args)) : last
 
 /** Returns `true` if the given prop is having its default value set. */
 export const hasDefaultProp = <T extends Lookup>(props: T, key: keyof T) =>
-  !is.und(getDefaultProp(props, key));
+  !is.und(getDefaultProp(props, key))
 
 /** Get the default value being set for the given `key` */
 export const getDefaultProp = <T extends Lookup, P extends keyof T>(
   props: T,
-  key: P
+  key: P,
 ): T[P] =>
   props.default === true
     ? props[key]
     : props.default
     ? props.default[key]
-    : undefined;
+    : undefined
 
-const noopTransform = (value: any) => value;
+const noopTransform = (value: any) => value
 
 /**
  * Extract the default props from an update.
@@ -1093,22 +1098,22 @@ const noopTransform = (value: any) => value;
  */
 export const getDefaultProps = <T extends Lookup>(
   props: Lookup,
-  transform: (value: any, key: string) => any = noopTransform
+  transform: (value: any, key: string) => any = noopTransform,
 ): T => {
-  let keys: readonly string[] = DEFAULT_PROPS;
+  let keys: readonly string[] = DEFAULT_PROPS
   if (props.default && props.default !== true) {
-    props = props.default;
-    keys = Object.keys(props);
+    props = props.default
+    keys = Object.keys(props)
   }
-  const defaults: any = {};
+  const defaults: any = {}
   for (const key of keys) {
-    const value = transform(props[key], key);
+    const value = transform(props[key], key)
     if (!is.und(value)) {
-      defaults[key] = value;
+      defaults[key] = value
     }
   }
-  return defaults;
-};
+  return defaults
+}
 
 /**
  * These props are implicitly used as defaults when defined in a
@@ -1122,18 +1127,18 @@ export const getDefaultProps = <T extends Lookup>(
  * the object syntax (eg: `default: { immediate: true }`).
  */
 export const DEFAULT_PROPS = [
-  "config",
-  "onProps",
-  "onStart",
-  "onChange",
-  "onPause",
-  "onResume",
-  "onRest",
-] as const;
+  'config',
+  'onProps',
+  'onStart',
+  'onChange',
+  'onPause',
+  'onResume',
+  'onRest',
+] as const
 
 // Compute the goal value, converting "red" to "rgba(255, 0, 0, 1)" in the process
 export function computeGoal<T>(value: T | FluidValue<T>): T {
-  value = getFluidValue(value);
+  value = getFluidValue(value)
   return is.arr(value)
     ? value.map(computeGoal)
     : isAnimatedString(value)
@@ -1141,7 +1146,7 @@ export function computeGoal<T>(value: T | FluidValue<T>): T {
         range: [0, 1],
         output: [value, value] as any,
       })(1) as any)
-    : value;
+    : value
 }
 
 /**
@@ -1153,51 +1158,51 @@ export function computeGoal<T>(value: T | FluidValue<T>): T {
  *
  */
 export const cssVariableRegex =
-  /var\((--[a-zA-Z0-9-_]+),? ?([a-zA-Z0-9 ()%#.,-]+)?\)/;
+  /var\((--[a-zA-Z0-9-_]+),? ?([a-zA-Z0-9 ()%#.,-]+)?\)/
 // Not all strings can be animated (eg: {display: "none"})
 export function isAnimatedString(value: unknown): value is string {
   return (
     is.str(value) &&
-    (value[0] == "#" ||
+    (value.startsWith('#') ||
       /\d/.test(value) ||
       // Do not identify a CSS variable as an AnimatedString if its SSR
       (!isSSR() && cssVariableRegex.test(value)) ||
       value in (G.colors || {}))
-  );
+  )
 }
 
 /**
  * Property names that are reserved for animation config
  */
 export interface ReservedProps extends ReservedEventProps {
-  config?: any;
-  from?: any;
-  to?: any;
-  ref?: any;
-  loop?: any;
-  pause?: any;
-  reset?: any;
-  cancel?: any;
-  reverse?: any;
-  immediate?: any;
-  default?: any;
-  delay?: any;
+  config?: any
+  from?: any
+  to?: any
+  ref?: any
+  loop?: any
+  pause?: any
+  reset?: any
+  cancel?: any
+  reverse?: any
+  immediate?: any
+  default?: any
+  delay?: any
 
   // Transition props
-  items?: any;
-  trail?: any;
-  sort?: any;
-  expires?: any;
-  initial?: any;
-  enter?: any;
-  update?: any;
-  leave?: any;
-  children?: any;
+  items?: any
+  trail?: any
+  sort?: any
+  expires?: any
+  initial?: any
+  enter?: any
+  update?: any
+  leave?: any
+  children?: any
 
   // Internal props
-  keys?: any;
-  callId?: any;
-  parentId?: any;
+  keys?: any
+  callId?: any
+  parentId?: any
 }
 
 /**
@@ -1205,11 +1210,9 @@ export interface ReservedProps extends ReservedEventProps {
  */
 export type ForwardProps<T extends object> = RawValues<
   Omit<Constrain<T, {}>, keyof ReservedProps>
->;
+>
 
-const RESERVED_PROPS: {
-  [key: string]: 1 | undefined;
-} = {
+const RESERVED_PROPS: Record<string, 1 | undefined> = {
   config: 1,
   from: 1,
   to: 1,
@@ -1246,7 +1249,7 @@ const RESERVED_PROPS: {
   keys: 1,
   callId: 1,
   parentId: 1,
-};
+}
 
 /**
  * Extract any properties whose keys are *not* reserved for customizing your
@@ -1254,20 +1257,20 @@ const RESERVED_PROPS: {
  * are reserved for `useSpring` calls, etc.
  */
 function getForwardProps<Props extends ReservedProps>(
-  props: Props
+  props: Props,
 ): ForwardProps<Props> | undefined {
-  const forward: any = {};
+  const forward: any = {}
 
-  let count = 0;
+  let count = 0
   eachProp(props, (value, prop) => {
     if (!RESERVED_PROPS[prop]) {
-      forward[prop] = value;
-      count++;
+      forward[prop] = value
+      count++
     }
-  });
+  })
 
   if (count) {
-    return forward;
+    return forward
   }
 }
 
@@ -1276,38 +1279,38 @@ function getForwardProps<Props extends ReservedProps>(
  * into the `to` prop.
  */
 export function inferTo<T extends object>(props: T): InferTo<T> {
-  const to = getForwardProps(props);
+  const to = getForwardProps(props)
   if (to) {
-    const out: any = { to };
-    eachProp(props, (val, key) => key in to || (out[key] = val));
-    return out;
+    const out: any = { to }
+    eachProp(props, (val, key) => key in to || (out[key] = val))
+    return out
   }
-  return { ...props } as any;
+  return { ...props } as any
 }
 
 export function isAsyncTo(to: any) {
-  return is.fun(to) || (is.arr(to) && is.obj(to[0]));
+  return is.fun(to) || (is.arr(to) && is.obj(to[0]))
 }
 
 export type AnimatedType<T = any> = Function & {
   create: (
     from: any,
-    goal?: any
+    goal?: any,
   ) => T extends ReadonlyArray<number | string>
     ? AnimatedArray<T>
-    : AnimatedValue<T>;
-};
+    : AnimatedValue<T>
+}
 
 /** Return the `Animated` node constructor for a given value */
 export function getAnimatedType(value: any): AnimatedType {
-  const parentNode = getAnimated(value);
+  const parentNode = getAnimated(value)
   return parentNode
     ? (parentNode.constructor as any)
     : is.arr(value)
     ? AnimatedArray
     : isAnimatedString(value)
     ? AnimatedString
-    : AnimatedValue;
+    : AnimatedValue
 }
 
 /** Detach `ctrl` from `ctrl.ref` and (optionally) the given `ref` */

@@ -1,6 +1,21 @@
-import { AnimatedObject } from "./AnimatedObject"
-import { addFluidObserver, callFluidObservers, FluidEvent, FluidValue, getFluidValue, hasFluidValue, removeFluidObserver } from "./fluids"
-import { is,each, Lookup, OneOrMore, eachProp, toArray } from "./utils"
+import { AnimatedObject } from './AnimatedObject'
+import {
+  addFluidObserver,
+  callFluidObservers,
+  type FluidEvent,
+  FluidValue,
+  getFluidValue,
+  hasFluidValue,
+  removeFluidObserver,
+} from './fluids'
+import {
+  is,
+  each,
+  type Lookup,
+  type OneOrMore,
+  eachProp,
+  toArray,
+} from './utils'
 
 /** The transform-functions
  * (https://developer.mozilla.org/fr/docs/Web/CSS/transform-function)
@@ -31,7 +46,7 @@ const addUnit = (value: Value, unit: string): string | 0 =>
  */
 const isValueIdentity = (value: OneOrMore<Value>, id: number): boolean =>
   is.arr(value)
-    ? value.every(v => isValueIdentity(v, id))
+    ? value.every((v) => isValueIdentity(v, id))
     : is.num(value)
     ? value === id
     : parseFloat(value) === id
@@ -73,8 +88,11 @@ export class AnimatedStyle extends AnimatedObject {
         inputs.push([value || ''])
         transforms.push((transform: string) => [transform, transform === ''])
       } else if (domTransforms.test(key)) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete style[key]
-        if (is.und(value)) return
+        if (is.und(value)) {
+          return
+        }
 
         const unit = pxTransforms.test(key)
           ? 'px'
@@ -90,9 +108,9 @@ export class AnimatedStyle extends AnimatedObject {
                 isValueIdentity(deg, 0),
               ]
             : (input: Value[]) => [
-                `${key}(${input.map(v => addUnit(v, unit)).join(',')})`,
+                `${key}(${input.map((v) => addUnit(v, unit)).join(',')})`,
                 isValueIdentity(input, key.startsWith('scale') ? 1 : 0),
-              ]
+              ],
         )
       }
     })
@@ -109,7 +127,10 @@ export class AnimatedStyle extends AnimatedObject {
 class FluidTransform extends FluidValue<string> {
   protected _value: string | null = null
 
-  constructor(readonly inputs: Inputs, readonly transforms: Transforms) {
+  constructor(
+    readonly inputs: Inputs,
+    readonly transforms: Transforms,
+  ) {
     super()
   }
 
@@ -123,9 +144,9 @@ class FluidTransform extends FluidValue<string> {
     each(this.inputs, (input, i) => {
       const arg1 = getFluidValue(input[0])
       const [t, id] = this.transforms[i](
-        is.arr(arg1) ? arg1 : input.map(getFluidValue)
+        is.arr(arg1) ? arg1 : input.map(getFluidValue),
       )
-      transform += ' ' + t
+      transform += ` ${t}`
       identity = identity && id
     })
     return identity ? 'none' : transform
@@ -133,24 +154,26 @@ class FluidTransform extends FluidValue<string> {
 
   // Start observing our inputs once we have an observer.
   protected observerAdded(count: number) {
-    if (count == 1)
-      each(this.inputs, input =>
+    if (count == 1) {
+      each(this.inputs, (input) =>
         each(
           input,
-          value => hasFluidValue(value) && addFluidObserver(value, this)
-        )
+          (value) => hasFluidValue(value) && addFluidObserver(value, this),
+        ),
       )
+    }
   }
 
   // Stop observing our inputs once we have no observers.
   protected observerRemoved(count: number) {
-    if (count == 0)
-      each(this.inputs, input =>
+    if (count == 0) {
+      each(this.inputs, (input) =>
         each(
           input,
-          value => hasFluidValue(value) && removeFluidObserver(value, this)
-        )
+          (value) => hasFluidValue(value) && removeFluidObserver(value, this),
+        ),
       )
+    }
   }
 
   eventObserved(event: FluidEvent) {

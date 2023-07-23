@@ -1,19 +1,19 @@
-import { AnimatedValue } from "./animated"
-import { AnimatedObject } from "./AnimatedObject"
-import { AnimatedString } from "./AnimatedString"
-import { isAnimatedString } from "./utils"
+import { AnimatedValue } from './animated'
+import { AnimatedObject } from './AnimatedObject'
+import { AnimatedString } from './AnimatedString'
+import { isAnimatedString } from './utils'
 
 type Value = number | string
 type Source = AnimatedValue<Value>[]
 
 /** An array of animated nodes */
 export class AnimatedArray<
-  T extends ReadonlyArray<Value> = Value[]
+  T extends ReadonlyArray<Value> = Value[],
 > extends AnimatedObject {
   protected declare source: Source
-  constructor(source: T) {
-    super(source)
-  }
+  // constructor(source: T) {
+  //   super(source)
+  // }
 
   /** @internal */
   static create<T extends ReadonlyArray<Value>>(source: T) {
@@ -21,7 +21,7 @@ export class AnimatedArray<
   }
 
   getValue(): T {
-    return this.source.map(node => node.getValue()) as any
+    return this.source.map((node) => node.getValue()) as any
   }
 
   setValue(source: T) {

@@ -1,4 +1,3 @@
-
 <h1 align="center">solid-spring</h1>
 <h3 align="center">A port of react-spring, for SolidJS</h3>
 
@@ -24,8 +23,8 @@ const styles = createSpring({
 The API is similar to what we have in react-spring, with small differences to make the library compatible with SolidJS
 
 ## Preview
-Click on the below gifs for exploring the code of each preview (ported from Poimandres examples).
 
+Click on the below gifs for exploring the code of each preview (ported from Poimandres examples).
 
 <p align="middle">
 <a href="https://codesandbox.io/s/spring-gestures-5xb9p8"><img src="https://i.imgur.com/qLKJod3.gif" width="400"/></a>
@@ -37,6 +36,7 @@ Click on the below gifs for exploring the code of each preview (ported from Poim
 ```shell
 npm install solid-spring
 ```
+
 ## Examples
 
 [Hello (opacity animation)](https://codesandbox.io/s/hello-qe3eq5?file=/index.tsx)
@@ -48,10 +48,11 @@ npm install solid-spring
 ## API
 
 ### `createSpring`
+
 > Turns values into animated-values.
 
 ```jsx
-import { createSpring, animated } from "solid-spring";
+import { createSpring, animated } from 'solid-spring'
 
 function ChainExample() {
   const styles = createSpring({
@@ -66,7 +67,9 @@ function ChainExample() {
   return <animated.div style={styles()}>I will fade in and out</animated.div>
 }
 ```
+
 `createSpring` also takes a function in case you want to pass a reactive value as a style!
+
 ```jsx
 const [disabled, setDisabled] = createSignal(false)
 
@@ -74,7 +77,9 @@ const styles = createSpring(() => ({
   pause: disabled(),
 }))
 ```
+
 ### `createSprings`
+
 > Creates multiple springs, each with its own config. Use it for static lists, etc.
 
 Similar to `useSprings` in react-spring, It takes number or a function that returns a number (for reactivity) as the first argument, and a list of springs or a function that returns a spring as the second argument.

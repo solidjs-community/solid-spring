@@ -1,38 +1,39 @@
-import { Lookup } from "./utils";
+import { type Lookup } from './utils'
 
-const isCustomPropRE = /^--/;
-
-type Value = string | number | boolean | null;
+type Value = string | number | boolean | null
 
 function dangerousStyleValue(name: string, value: Value) {
-  if (value == null || typeof value === "boolean" || value === "") return "";
+  if (value == null || typeof value === 'boolean' || value === '') {
+    return ''
+  }
   if (
-    typeof value === "number" &&
+    typeof value === 'number' &&
     value !== 0 &&
-    !isCustomPropRE.test(name) &&
+    !name.startsWith('--') &&
     !(isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name])
-  )
-    return value + "px";
+  ) {
+    return `${value}px`
+  }
   // Presumes implicit 'px' suffix for unitless numbers
-  return ("" + value).trim();
+  return `${value}`.trim()
 }
 
-const attributeCache: Lookup<string> = {};
+const attributeCache: Lookup<string> = {}
 
-type Instance = HTMLDivElement & { style?: Lookup };
+type Instance = HTMLDivElement & { style?: Lookup }
 
 export function applyAnimatedValues(instance: Instance, props: Lookup) {
   if (!instance.nodeType || !instance.setAttribute) {
-    return false;
+    return false
   }
 
   const isFilterElement =
-    instance.nodeName === "filter" ||
-    (instance.parentNode && instance.parentNode.nodeName === "filter");
+    instance.nodeName === 'filter' ||
+    (instance.parentNode && instance.parentNode.nodeName === 'filter')
 
-  const { style, children, scrollTop, scrollLeft, ...attributes } = props!;
+  const { style, children, scrollTop, scrollLeft, ...attributes } = props!
 
-  const values = Object.values(attributes);
+  const values = Object.values(attributes)
   const names = Object.keys(attributes).map((name) =>
     isFilterElement || instance.hasAttribute(name)
       ? name
@@ -40,40 +41,40 @@ export function applyAnimatedValues(instance: Instance, props: Lookup) {
         (attributeCache[name] = name.replace(
           /([A-Z])/g,
           // Attributes are written in dash case
-          (n) => "-" + n.toLowerCase()
-        ))
-  );
+          (n) => `-${n.toLowerCase()}`,
+        )),
+  )
 
   if (children !== void 0) {
-    instance.textContent = children;
+    instance.textContent = children
   }
 
   // Apply CSS styles
-  for (let name in style) {
+  for (const name in style) {
     if (style.hasOwnProperty(name)) {
-      const value = dangerousStyleValue(name, style[name]);
-      if (isCustomPropRE.test(name)) {
-        instance.style.setProperty(name, value);
+      const value = dangerousStyleValue(name, style[name])
+      if (name.startsWith('--')) {
+        instance.style.setProperty(name, value)
       } else {
-        instance.style[name] = value;
+        instance.style[name] = value
       }
     }
   }
 
   // Apply DOM attributes
   names.forEach((name, i) => {
-    instance.setAttribute(name, values[i]);
-  });
+    instance.setAttribute(name, values[i])
+  })
 
   if (scrollTop !== void 0) {
-    instance.scrollTop = scrollTop;
+    instance.scrollTop = scrollTop
   }
   if (scrollLeft !== void 0) {
-    instance.scrollLeft = scrollLeft;
+    instance.scrollLeft = scrollLeft
   }
 }
 
-let isUnitlessNumber: { [key: string]: true } = {
+let isUnitlessNumber: Record<string, true> = {
   animationIterationCount: true,
   borderImageOutset: true,
   borderImageSlice: true,
@@ -116,13 +117,13 @@ let isUnitlessNumber: { [key: string]: true } = {
   strokeMiterlimit: true,
   strokeOpacity: true,
   strokeWidth: true,
-};
+}
 
 const prefixKey = (prefix: string, key: string) =>
-  prefix + key.charAt(0).toUpperCase() + key.substring(1);
-const prefixes = ["Webkit", "Ms", "Moz", "O"];
+  prefix + key.charAt(0).toUpperCase() + key.substring(1)
+const prefixes = ['Webkit', 'Ms', 'Moz', 'O']
 
 isUnitlessNumber = Object.keys(isUnitlessNumber).reduce((acc, prop) => {
-  prefixes.forEach((prefix) => (acc[prefixKey(prefix, prop)] = acc[prop]));
-  return acc;
-}, isUnitlessNumber);
+  prefixes.forEach((prefix) => (acc[prefixKey(prefix, prop)] = acc[prop]))
+  return acc
+}, isUnitlessNumber)

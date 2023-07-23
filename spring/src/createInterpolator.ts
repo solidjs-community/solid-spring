@@ -1,11 +1,17 @@
 import * as G from './globals'
-import { ExtrapolateType, Animatable, InterpolatorConfig, InterpolatorFactory, InterpolatorFn } from "./Interpolation"
-import { EasingFunction, is } from "./utils"
+import {
+  type ExtrapolateType,
+  type Animatable,
+  type InterpolatorConfig,
+  type InterpolatorFactory,
+  type InterpolatorFn,
+} from './Interpolation'
+import { type EasingFunction, is } from './utils'
 
 export const createInterpolator: InterpolatorFactory = (
   range: readonly number[] | InterpolatorFn<any, any> | InterpolatorConfig<any>,
   output?: readonly Animatable[],
-  extrapolate?: ExtrapolateType
+  extrapolate?: ExtrapolateType,
 ) => {
   if (is.fun(range)) {
     return range
@@ -31,7 +37,7 @@ export const createInterpolator: InterpolatorFactory = (
     config.extrapolateLeft || config.extrapolate || 'extend'
   const extrapolateRight =
     config.extrapolateRight || config.extrapolate || 'extend'
-  const easing = config.easing || (t => t)
+  const easing = config.easing || ((t) => t)
 
   return (input: number) => {
     const range = findRange(input, inputRange)
@@ -44,7 +50,7 @@ export const createInterpolator: InterpolatorFactory = (
       easing,
       extrapolateLeft,
       extrapolateRight,
-      config.map
+      config.map,
     )
   }
 }
@@ -58,35 +64,57 @@ function interpolate(
   easing: EasingFunction,
   extrapolateLeft: ExtrapolateType,
   extrapolateRight: ExtrapolateType,
-  map?: (x: number) => number
+  map?: (x: number) => number,
 ) {
   let result = map ? map(input) : input
   // Extrapolate
   if (result < inputMin) {
-    if (extrapolateLeft === 'identity') return result
-    else if (extrapolateLeft === 'clamp') result = inputMin
+    if (extrapolateLeft === 'identity') {
+      return result
+    } else if (extrapolateLeft === 'clamp') {
+      result = inputMin
+    }
   }
   if (result > inputMax) {
-    if (extrapolateRight === 'identity') return result
-    else if (extrapolateRight === 'clamp') result = inputMax
+    if (extrapolateRight === 'identity') {
+      return result
+    } else if (extrapolateRight === 'clamp') {
+      result = inputMax
+    }
   }
-  if (outputMin === outputMax) return outputMin
-  if (inputMin === inputMax) return input <= inputMin ? outputMin : outputMax
+  if (outputMin === outputMax) {
+    return outputMin
+  }
+  if (inputMin === inputMax) {
+    return input <= inputMin ? outputMin : outputMax
+  }
   // Input Range
-  if (inputMin === -Infinity) result = -result
-  else if (inputMax === Infinity) result = result - inputMin
-  else result = (result - inputMin) / (inputMax - inputMin)
+  if (inputMin === -Infinity) {
+    result = -result
+  } else if (inputMax === Infinity) {
+    result = result - inputMin
+  } else {
+    result = (result - inputMin) / (inputMax - inputMin)
+  }
   // Easing
   result = easing(result)
   // Output Range
-  if (outputMin === -Infinity) result = -result
-  else if (outputMax === Infinity) result = result + outputMin
-  else result = result * (outputMax - outputMin) + outputMin
+  if (outputMin === -Infinity) {
+    result = -result
+  } else if (outputMax === Infinity) {
+    result = result + outputMin
+  } else {
+    result = result * (outputMax - outputMin) + outputMin
+  }
   return result
 }
 
 function findRange(input: number, inputRange: readonly number[]) {
-  for (var i = 1; i < inputRange.length - 1; ++i)
-    if (inputRange[i] >= input) break
+  let i = 1
+  for (; i < inputRange.length - 1; ++i) {
+    if (inputRange[i] >= input) {
+      break
+    }
+  }
   return i - 1
 }
