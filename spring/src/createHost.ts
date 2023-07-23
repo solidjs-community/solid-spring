@@ -80,7 +80,7 @@ export type WithAnimated = ((Component: any) => any) & {
 }
 /** The props of an `animated()` component */
 export type AnimatedProps<Props extends object> = {
-  [P in keyof Props]: P extends 'ref' | 'key'
+  [P in keyof Props]: P extends 'ref' | 'key' | 'children'
     ? Props[P]
     : AnimatedProp<Props[P]>
 }
