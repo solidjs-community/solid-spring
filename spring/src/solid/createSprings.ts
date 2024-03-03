@@ -95,22 +95,9 @@ export function createSprings<Props extends CreateSpringsProps>(
   const ctrls = [...state.ctrls];
 
   const updates: any[] = [];
-  // Create new controllers when "length" increases, and destroy
-  // the affected controllers when "length" decreases.
-  createEffect(() => {
-    const length = lengthFn();
-    // Clean up any unused controllers
-    each(ctrls.slice(length, prevLength), (ctrl) => {
-      detachRefs(ctrl, ref);
-      ctrl.stop(true);
-    });
-    ctrls.length = length;
-
-    declareUpdates(prevLength, length);
-  });
 
   // Cache old controllers to dispose in the commit phase.
-  const prevLength = lengthFn() || 0;
+  let prevLength = lengthFn() || 0;
   const [update, setUpdate] = createSignal(Symbol())
 
   // Update existing controllers when "deps" are changed.
@@ -136,10 +123,6 @@ export function createSprings<Props extends CreateSpringsProps>(
     setUpdate(Symbol())
   }
 
-  // New springs are created during render so users can pass them to
-  // their animated components, but new springs aren't cached until the
-  // commit phase (see the `useLayoutEffect` callback below).
-  const springs = ctrls.map((ctrl, i) => getSprings(ctrl, updates[i]));
 
   createRenderEffect(() => {
     update()
@@ -187,9 +170,25 @@ export function createSprings<Props extends CreateSpringsProps>(
     each(state.ctrls, (ctrl) => ctrl.stop(true));
   });
 
+  // Create new controllers when "length" increases, and destroy
+  // the affected controllers when "length" decreases.
+  // Right after that retun accessor
   const value: Accessor<SpringValues<PickAnimated<Props>>[]> & {
     ref: SpringRefType<PickAnimated<Props>>;
-  } = createMemo(() => springs.map((x) => ({ ...x }))) as any;
+  } = createMemo(() => {
+    const length = lengthFn();
+    // Clean up any unused controllers
+    each(ctrls.slice(length, prevLength), (ctrl) => {
+      detachRefs(ctrl, ref);
+      ctrl.stop(true);
+    });
+    declareUpdates(prevLength, length);
+    ctrls.length = length;
+    prevLength = length;
+
+    const springs = ctrls.map((ctrl, i) => getSprings(ctrl, updates[i]));
+    return springs.map((x) => ({ ...x }))
+  }) as any;
 
   value.ref = ref as any;
 
